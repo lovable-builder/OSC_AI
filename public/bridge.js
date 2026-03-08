@@ -249,6 +249,16 @@ wss.on("connection", (ws, req) => {
         return;
       }
 
+      if (msg.type === "request_cues") {
+        const cueList = msg.cueList || "1";
+        udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/count`), args: [] }, host, port);
+        for (let i = 0; i < 100; i++) {
+          udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/${i}`), args: [] }, host, port);
+        }
+        ws.send(JSON.stringify({ ok: true, type: "request_cues" }));
+        return;
+      }
+
       const { path, value } = msg;
       if (!path) {
         console.warn("  ⚠ Invalid message (missing path):", msg);
