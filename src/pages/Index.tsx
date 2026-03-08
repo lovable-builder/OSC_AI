@@ -1034,6 +1034,67 @@ export default function App() {
     }
   }, [oscHost, oscPort]);
 
+  // Execute AI OSC commands
+  const executeAiOscCommands = useCallback(async (prompt: string) => {
+    if (!prompt.trim()) return;
+    
+    setAiOscLoading(true);
+    setAiOscHistory(prev => [...prev, { role: "user", text: prompt }]);
+    
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc-agent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ 
+            prompt, 
+            consoleName: selectedConsole?.name || "Unknown",
+            context: {
+              activeCue: consoleFeedback.activeCue,
+              consoleOnline: consoleFeedback.consoleOnline,
+              channelCount: consoleFeedback.channelCount,
+            }
+          }),
+        }
+      );
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      
+      const data = await res.json();
+      const commands = data.commands || [];
+      
+      setAiOscHistory(prev => [...prev, { 
+        role: "assistant", 
+        text: `Generated ${commands.length} command(s)`, 
+        commands 
+      }]);
+      
+      // Execute commands sequentially with small delay
+      for (let i = 0; i < commands.length; i++) {
+        const cmd = commands[i];
+        if (i > 0) await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay between commands
+        sendOsc(cmd.path, cmd.value);
+      }
+      
+    } catch (err: any) {
+      console.error("AI OSC error:", err);
+      setAiOscHistory(prev => [...prev, { 
+        role: "assistant", 
+        text: `Error: ${err.message}` 
+      }]);
+    } finally {
+      setAiOscLoading(false);
+      setAiOscInput("");
+    }
+  }, [selectedConsole, consoleFeedback, sendOsc]);
+
   const handleQuickAction = (action: any) => {
     if (action.value) {
       sendOsc(action.path, action.value);
