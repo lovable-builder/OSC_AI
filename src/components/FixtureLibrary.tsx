@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FIXTURES, MANUFACTURERS, FIXTURE_CATEGORIES, type Fixture, type FixtureMode } from "@/data/fixtures";
 
 // ── Styles (matching the app's aesthetic) ────────────────────────────────────
