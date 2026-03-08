@@ -2062,6 +2062,18 @@ export default function App() {
                 >
                   🔍 PING CONSOLE
                 </GlowButton>
+                <GlowButton
+                  onClick={() => {
+                    setCues([]);
+                    setCuesLive(false);
+                    sendBridgeMessage({ type: "request_cues" });
+                  }}
+                  disabled={!wsConnected}
+                  color="#f59e0b"
+                  style={{ flex: 1 }}
+                >
+                  🎭 IMPORT CUES
+                </GlowButton>
               </div>
 
               {/* Console Patch Table (from dump) */}
