@@ -325,7 +325,7 @@ function StepCard({ step, index, isActive, total, onClick }) {
 
 // ── OSC COMMAND CARD ───────────────────────────────────────────────────────────
 function OscCard({ cmd, onSend }) {
-  const [vals, setVals] = useState({});
+  const [vals, setVals] = useState<Record<string, string>>({});
   const [fired, setFired] = useState(false);
 
   const resolvedPath = cmd.path
