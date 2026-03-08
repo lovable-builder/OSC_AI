@@ -90,7 +90,59 @@ function parseConsoleOscMessage(oscMsg) {
     };
   }
 
-  // Active cue
+  // Cue list data: /eos/out/get/cue/1/X/... or /eos/out/get/cue/1/count
+  if (address.match(/\/out\/get\/cue\/\d+\/count/)) {
+    const countArg = args.find((a) => typeof a === "number" || /^\d+$/.test(String(a)));
+    return {
+      type: "console_feedback",
+      subtype: "cue_count",
+      count: countArg ? Number(countArg) : 0,
+      address,
+      args,
+    };
+  }
+
+  // Cue data: /eos/out/get/cue/1/<cue_number>/...
+  // EOS returns: cue_number, label, up_time, down_time, follow, hang, etc.
+  const cueDataMatch = address.match(/\/out\/get\/cue\/(\d+)\/(\d+(?:\.\d+)?)\/?(.*)$/);
+  if (cueDataMatch) {
+    const cueListId = cueDataMatch[1];
+    const cueNumber = cueDataMatch[2];
+    const property = cueDataMatch[3] || "";
+
+    // If property is empty, this is the main cue info line
+    // EOS sends: cue_number, cue_label (as first string arg), up_time, down_time
+    if (!property) {
+      const label = args.find((a) => typeof a === "string") || "";
+      const numArgs = args.filter((a) => typeof a === "number");
+      return {
+        type: "console_feedback",
+        subtype: "cue_data",
+        cue_list: cueListId,
+        cue_number: cueNumber,
+        label: String(label),
+        up_time: numArgs[0] ?? null,
+        down_time: numArgs[1] ?? null,
+        follow_time: numArgs[2] ?? null,
+        address,
+        args,
+      };
+    }
+
+    // Specific property replies (label, duration, etc.)
+    return {
+      type: "console_feedback",
+      subtype: "cue_property",
+      cue_list: cueListId,
+      cue_number: cueNumber,
+      property,
+      value: args[0] ?? null,
+      address,
+      args,
+    };
+  }
+
+  // Active cue (running cue feedback)
   if (address.includes("cue") && (address.includes("/out/") || address.includes("/get/"))) {
     const cueArg = args.find((a) => typeof a === "number" || /^\d+(\.\d+)?$/.test(String(a)));
     return {
@@ -198,10 +250,20 @@ wss.on("connection", (ws, req) => {
       }
 
       if (msg.type === "request_patch") {
-        // Different EOS versions expose patch data differently; issue a couple of common gets.
         udpPort.send({ address: withUserPath("/eos/get/patch/count"), args: [] }, host, port);
         udpPort.send({ address: withUserPath("/eos/get/patch/1/512"), args: [] }, host, port);
         ws.send(JSON.stringify({ ok: true, type: "request_patch" }));
+        return;
+      }
+
+      if (msg.type === "request_cues") {
+        const cueList = msg.cueList || "1";
+        // Request cue count first, then list indices 0-99
+        udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/count`), args: [] }, host, port);
+        for (let i = 0; i < 100; i++) {
+          udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/${i}`), args: [] }, host, port);
+        }
+        ws.send(JSON.stringify({ ok: true, type: "request_cues" }));
         return;
       }
 

@@ -491,12 +491,29 @@ function FixtureGrid({ channels }) {
 }
 
 // ── CUE STACK ─────────────────────────────────────────────────────────────────
-function CueStack({ cues, activeCue, onGo }) {
+function CueStack({ cues, activeCue, onGo, isLive = false }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      {isLive && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px",
+          padding: "4px 10px", borderRadius: "6px",
+          background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)",
+        }}>
+          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#22c55e", animation: "pulse-ring 2s infinite" }} />
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#22c55e", letterSpacing: "0.1em" }}>
+            LIVE FROM CONSOLE — {cues.length} CUES
+          </span>
+        </div>
+      )}
+      {cues.length === 0 && (
+        <div style={{ textAlign: "center", padding: "24px", color: "#333", fontFamily: "'Space Mono', monospace", fontSize: "11px" }}>
+          No cues loaded. Click IMPORT CUES to sync from console.
+        </div>
+      )}
       {cues.map((cue, i) => (
         <div
-          key={i}
+          key={cue.id + "-" + i}
           onClick={() => onGo(cue)}
           style={{
             display: "flex",
@@ -513,34 +530,36 @@ function CueStack({ cues, activeCue, onGo }) {
         >
           <div
             style={{
-              width: "6px",
-              height: "6px",
-              borderRadius: "50%",
+              width: "6px", height: "6px", borderRadius: "50%",
               background: activeCue === cue.id ? "#FF6B2B" : "#333",
               flexShrink: 0,
               boxShadow: activeCue === cue.id ? "0 0 8px #FF6B2B" : "none",
             }}
           />
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: activeCue === cue.id ? "#FF6B2B" : "#666",
-              width: "36px",
-            }}
-          >
+          <span style={{
+            fontFamily: "'Space Mono', monospace", fontSize: "11px",
+            color: activeCue === cue.id ? "#FF6B2B" : "#666", width: "44px",
+          }}>
             {cue.id}
           </span>
-          <span
-            style={{
-              flex: 1,
-              fontSize: "12px",
-              color: activeCue === cue.id ? "#e0e0e0" : "#555",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            {cue.label}
+          <span style={{
+            flex: 1, fontSize: "12px",
+            color: activeCue === cue.id ? "#e0e0e0" : "#555",
+            fontFamily: "'DM Sans', sans-serif",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {cue.label || "—"}
           </span>
+          {cue.upTime != null && (
+            <span style={{ fontSize: "9px", color: "#3b82f6", fontFamily: "'Space Mono', monospace" }}>
+              ↑{cue.upTime}s
+            </span>
+          )}
+          {cue.downTime != null && (
+            <span style={{ fontSize: "9px", color: "#8b5cf6", fontFamily: "'Space Mono', monospace" }}>
+              ↓{cue.downTime}s
+            </span>
+          )}
           <span style={{ fontSize: "10px", color: "#444", fontFamily: "'Space Mono', monospace" }}>{cue.time}s</span>
         </div>
       ))}
@@ -733,6 +752,38 @@ export default function App() {
               label: p.label ?? "",
             })));
           }
+
+          // Cue data from console
+          if (data.subtype === "cue_data") {
+            setCuesLive(true);
+            setCues(prev => {
+              const existing = prev.find(c => c.id === data.cue_number);
+              const cueEntry = {
+                id: data.cue_number,
+                label: data.label || existing?.label || "",
+                time: data.up_time != null ? String(data.up_time) : (existing?.time || "0"),
+                upTime: data.up_time,
+                downTime: data.down_time,
+              };
+              if (existing) {
+                return prev.map(c => c.id === data.cue_number ? { ...c, ...cueEntry } : c);
+              }
+              // Insert in sorted order
+              const newCues = [...prev, cueEntry];
+              newCues.sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
+              return newCues;
+            });
+          }
+
+          if (data.subtype === "cue_property") {
+            setCues(prev => prev.map(c => {
+              if (c.id !== data.cue_number) return c;
+              if (data.property === "label") return { ...c, label: String(data.value || "") };
+              if (data.property === "duration" || data.property === "up") return { ...c, time: String(data.value ?? c.time), upTime: data.value };
+              if (data.property === "down") return { ...c, downTime: data.value };
+              return c;
+            }));
+          }
           break;
         }
         case "active_cue": {
@@ -844,6 +895,7 @@ export default function App() {
 
     const slowPoll = setInterval(() => {
       sendBridgeMessage({ type: "request_patch" });
+      sendBridgeMessage({ type: "request_cues" });
     }, 15000);
 
     return () => {
@@ -862,14 +914,15 @@ export default function App() {
       b: 40 + Math.random() * 60,
     })),
   );
-  const [cues] = useState([
-    { id: "1", label: "Opening — Warm Wash", time: "3.5" },
-    { id: "2", label: "Scene 2 — Spot DS", time: "2.0" },
-    { id: "3", label: "Transition — Fade to Blue", time: "5.0" },
-    { id: "4", label: "Act 2 — Full Stage", time: "1.5" },
-    { id: "5", label: "Blackout", time: "0.5" },
-    { id: "6", label: "Curtain Call", time: "2.0" },
+  const [cues, setCues] = useState([
+    { id: "1", label: "Opening — Warm Wash", time: "3.5", upTime: null, downTime: null },
+    { id: "2", label: "Scene 2 — Spot DS", time: "2.0", upTime: null, downTime: null },
+    { id: "3", label: "Transition — Fade to Blue", time: "5.0", upTime: null, downTime: null },
+    { id: "4", label: "Act 2 — Full Stage", time: "1.5", upTime: null, downTime: null },
+    { id: "5", label: "Blackout", time: "0.5", upTime: null, downTime: null },
+    { id: "6", label: "Curtain Call", time: "2.0", upTime: null, downTime: null },
   ]);
+  const [cuesLive, setCuesLive] = useState(false);
   const [activeCue, setActiveCue] = useState(null);
   const [specActive, setSpecActive] = useState(false);
   const [faderVals, setFaderVals] = useState(() => [
@@ -2010,6 +2063,18 @@ export default function App() {
                 >
                   🔍 PING CONSOLE
                 </GlowButton>
+                <GlowButton
+                  onClick={() => {
+                    setCues([]);
+                    setCuesLive(false);
+                    sendBridgeMessage({ type: "request_cues" });
+                  }}
+                  disabled={!wsConnected}
+                  color="#f59e0b"
+                  style={{ flex: 1 }}
+                >
+                  🎭 IMPORT CUES
+                </GlowButton>
               </div>
 
               {/* Console Patch Table (from dump) */}
@@ -2162,16 +2227,26 @@ export default function App() {
                 >
                   CUE STACK
                 </span>
+                {cuesLive && (
+                  <span style={{
+                    fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#22c55e",
+                    padding: "2px 8px", borderRadius: "4px", background: "rgba(34,197,94,0.1)",
+                    border: "1px solid rgba(34,197,94,0.2)",
+                  }}>
+                    LIVE
+                  </span>
+                )}
                 {activeCue && (
                   <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#FF6B2B" }}>
                     CUE {activeCue} ACTIVE
                   </span>
                 )}
               </div>
-              <div style={{ padding: "14px" }}>
+              <div style={{ padding: "14px", maxHeight: "400px", overflowY: "auto" }}>
                 <CueStack
                   cues={cues}
                   activeCue={activeCue}
+                  isLive={cuesLive}
                   onGo={(cue) => {
                     setActiveCue(cue.id);
                     sendOsc(`/eos/cue/${cue.id}/fire`);

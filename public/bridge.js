@@ -95,6 +95,53 @@ function parseConsoleOscMessage(oscMsg) {
     };
   }
 
+  // Cue list data: /eos/out/get/cue/1/X/... or /eos/out/get/cue/1/count
+  if (address.match(/\/out\/get\/cue\/\d+\/count/)) {
+    const countArg = args.find((a) => typeof a === "number" || /^\d+$/.test(String(a)));
+    return {
+      type: "console_feedback",
+      subtype: "cue_count",
+      count: countArg ? Number(countArg) : 0,
+      address,
+      args,
+    };
+  }
+
+  const cueDataMatch = address.match(/\/out\/get\/cue\/(\d+)\/(\d+(?:\.\d+)?)\/?(.*)$/);
+  if (cueDataMatch) {
+    const cueListId = cueDataMatch[1];
+    const cueNumber = cueDataMatch[2];
+    const property = cueDataMatch[3] || "";
+
+    if (!property) {
+      const label = args.find((a) => typeof a === "string") || "";
+      const numArgs = args.filter((a) => typeof a === "number");
+      return {
+        type: "console_feedback",
+        subtype: "cue_data",
+        cue_list: cueListId,
+        cue_number: cueNumber,
+        label: String(label),
+        up_time: numArgs[0] ?? null,
+        down_time: numArgs[1] ?? null,
+        follow_time: numArgs[2] ?? null,
+        address,
+        args,
+      };
+    }
+
+    return {
+      type: "console_feedback",
+      subtype: "cue_property",
+      cue_list: cueListId,
+      cue_number: cueNumber,
+      property,
+      value: args[0] ?? null,
+      address,
+      args,
+    };
+  }
+
   if (address.includes("cue") && (address.includes("/out/") || address.includes("/get/"))) {
     const cueArg = args.find((a) => typeof a === "number" || /^\d+(\.\d+)?$/.test(String(a)));
     return {
@@ -199,6 +246,16 @@ wss.on("connection", (ws, req) => {
         udpPort.send({ address: withUserPath("/eos/get/patch/count"), args: [] }, host, port);
         udpPort.send({ address: withUserPath("/eos/get/patch/1/512"), args: [] }, host, port);
         ws.send(JSON.stringify({ ok: true, type: "request_patch" }));
+        return;
+      }
+
+      if (msg.type === "request_cues") {
+        const cueList = msg.cueList || "1";
+        udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/count`), args: [] }, host, port);
+        for (let i = 0; i < 100; i++) {
+          udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/${i}`), args: [] }, host, port);
+        }
+        ws.send(JSON.stringify({ ok: true, type: "request_cues" }));
         return;
       }
 
