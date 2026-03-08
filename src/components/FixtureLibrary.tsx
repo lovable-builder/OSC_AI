@@ -225,7 +225,7 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
       id: "imported",
       manufacturer: "Console",
       model: "Imported",
-      category: "Other",
+      category: "Wash" as const,
       description: "Imported from console patch",
       modes: [{ name: "Imported", channels: 1, channelMap: ["Intensity"] }],
     };
