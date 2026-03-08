@@ -924,6 +924,7 @@ export default function App() {
           {[
             { id: "guide", label: "AI GUIDE", icon: "◈" },
             { id: "osc", label: "OSC CONTROL", icon: "⊕" },
+            { id: "fixtures", label: "FIXTURES", icon: "⬡" },
             { id: "live", label: "LIVE STAGE", icon: "◉" },
           ].map((tab) => (
             <button
