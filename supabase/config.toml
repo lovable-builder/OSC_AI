@@ -2,3 +2,6 @@ project_id = "xdrwnnwvdubmwitqvarx"
 
 [functions.console-guide]
 verify_jwt = false
+
+[functions.osc-agent]
+verify_jwt = false
