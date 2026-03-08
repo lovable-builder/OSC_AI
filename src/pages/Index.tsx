@@ -1805,7 +1805,219 @@ export default function App() {
 
         {/* ══ MODULE: LIVE STAGE ══ */}
         {activeModule === "live" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* ── Console Feedback Panel ── */}
+            <div
+              style={{
+                background: "rgba(255,255,255,0.015)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: "16px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  padding: "14px 18px",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  background: "rgba(255,107,43,0.03)",
+                }}
+              >
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: consoleFeedback.consoleOnline ? "#22c55e" : "#ef4444",
+                    boxShadow: consoleFeedback.consoleOnline ? "0 0 8px #22c55e" : "0 0 8px #ef4444",
+                    animation: consoleFeedback.consoleOnline ? "pulse-ring 2s infinite" : "none",
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "10px",
+                    color: "#666",
+                    letterSpacing: "0.12em",
+                    flex: 1,
+                  }}
+                >
+                  CONSOLE FEEDBACK
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "10px",
+                    color: consoleFeedback.consoleOnline ? "#22c55e" : "#ef4444",
+                  }}
+                >
+                  {consoleFeedback.consoleOnline ? "CONSOLE ONLINE" : "CONSOLE OFFLINE"}
+                </span>
+              </div>
+
+              <div style={{ padding: "16px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                {/* Active Cue */}
+                <div
+                  style={{
+                    background: "rgba(255,107,43,0.08)",
+                    border: "1px solid rgba(255,107,43,0.2)",
+                    borderRadius: "10px",
+                    padding: "14px 16px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#666", letterSpacing: "0.12em", marginBottom: "8px" }}>
+                    ACTIVE CUE
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "28px",
+                      fontWeight: "700",
+                      color: consoleFeedback.activeCue ? "#FF6B2B" : "#333",
+                      textShadow: consoleFeedback.activeCue ? "0 0 20px rgba(255,107,43,0.4)" : "none",
+                    }}
+                  >
+                    {consoleFeedback.activeCue || "—"}
+                  </div>
+                </div>
+
+                {/* Command Line */}
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: "10px",
+                    padding: "14px 16px",
+                  }}
+                >
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#666", letterSpacing: "0.12em", marginBottom: "8px" }}>
+                    COMMAND LINE
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "14px",
+                      color: consoleFeedback.commandLine ? "#ddd" : "#333",
+                      background: "rgba(0,0,0,0.3)",
+                      borderRadius: "6px",
+                      padding: "8px 12px",
+                      minHeight: "36px",
+                      border: "1px solid rgba(255,255,255,0.04)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {consoleFeedback.commandLine || "// idle"}
+                    <span style={{ animation: "shimmer 1s infinite", color: "#FF6B2B" }}>▎</span>
+                  </div>
+                </div>
+
+                {/* Channel Count */}
+                <div
+                  style={{
+                    background: "rgba(59,130,246,0.08)",
+                    border: "1px solid rgba(59,130,246,0.2)",
+                    borderRadius: "10px",
+                    padding: "14px 16px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#666", letterSpacing: "0.12em", marginBottom: "8px" }}>
+                    CHANNELS
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "28px",
+                      fontWeight: "700",
+                      color: consoleFeedback.channelCount > 0 ? "#3b82f6" : "#333",
+                      textShadow: consoleFeedback.channelCount > 0 ? "0 0 20px rgba(59,130,246,0.4)" : "none",
+                    }}
+                  >
+                    {consoleFeedback.channelCount || "0"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Request Buttons */}
+              <div
+                style={{
+                  padding: "12px 18px 16px",
+                  display: "flex",
+                  gap: "8px",
+                  borderTop: "1px solid rgba(255,255,255,0.04)",
+                }}
+              >
+                <GlowButton
+                  onClick={() => sendBridgeMessage({ type: "request_patch" })}
+                  disabled={!wsConnected}
+                  color="#8b5cf6"
+                  style={{ flex: 1 }}
+                >
+                  📋 REQUEST PATCH DUMP
+                </GlowButton>
+                <GlowButton
+                  onClick={() => sendBridgeMessage({ type: "request_levels" })}
+                  disabled={!wsConnected}
+                  color="#3b82f6"
+                  style={{ flex: 1 }}
+                >
+                  📊 REQUEST LEVELS
+                </GlowButton>
+                <GlowButton
+                  onClick={() => sendBridgeMessage({ type: "ping" })}
+                  disabled={!wsConnected}
+                  color="#22c55e"
+                  style={{ flex: 1 }}
+                >
+                  🔍 PING CONSOLE
+                </GlowButton>
+              </div>
+
+              {/* Console Patch Table (from dump) */}
+              {consolePatch.length > 0 && (
+                <div style={{ padding: "0 18px 16px" }}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#666", letterSpacing: "0.12em", marginBottom: "8px" }}>
+                    CONSOLE PATCH ({consolePatch.length} ENTRIES)
+                  </div>
+                  <div
+                    style={{
+                      maxHeight: "180px",
+                      overflowY: "auto",
+                      borderRadius: "8px",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'Space Mono', monospace", fontSize: "10px" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                          {["CH", "UNI", "ADDR", "FIXTURE", "LABEL"].map(h => (
+                            <th key={h} style={{ padding: "6px 10px", textAlign: "left", color: "#555", fontWeight: "700", fontSize: "9px", letterSpacing: "0.08em" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {consolePatch.map((p, i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                            <td style={{ padding: "5px 10px", color: "#FF6B2B" }}>{p.channel}</td>
+                            <td style={{ padding: "5px 10px", color: "#888" }}>{p.universe}</td>
+                            <td style={{ padding: "5px 10px", color: "#888" }}>{p.address}</td>
+                            <td style={{ padding: "5px 10px", color: "#666" }}>{p.fixture || "—"}</td>
+                            <td style={{ padding: "5px 10px", color: "#555" }}>{p.label || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             {/* Channel Grid */}
             <div
               style={{
