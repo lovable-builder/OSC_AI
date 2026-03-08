@@ -139,7 +139,7 @@ export default function FixtureLibrary({ onPatch }: FixtureLibraryProps) {
       newEntries.push(entry);
 
       // Send EOS command-line patch command via /eos/cmd ("#" acts as Enter)
-      onPatch("/eos/cmd", { a: `Chan ${ch} Patch ${uni}/${addr}#` });
+      onPatch("/eos/newcmd", `Chan ${ch} Address ${uni}/${addr} Enter`);
     }
 
     setPatchList((prev) => [...prev, ...newEntries]);
