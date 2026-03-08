@@ -653,6 +653,141 @@ export default function App() {
   const wsReconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
 
+  // Console feedback state
+  const [consoleFeedback, setConsoleFeedback] = useState<{
+    activeCue: string | null;
+    commandLine: string;
+    channelCount: number;
+    consoleOnline: boolean;
+    lastPong: number | null;
+  }>({
+    activeCue: null,
+    commandLine: "",
+    channelCount: 0,
+    consoleOnline: false,
+    lastPong: null,
+  });
+  const [consolePatch, setConsolePatch] = useState<Array<{
+    channel: number;
+    universe: number;
+    address: number;
+    fixture?: string;
+    label?: string;
+  }>>([]);
+
+  // Handler for incoming bridge messages
+  const handleBridgeMessage = useCallback((event: MessageEvent) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (!data.type) return;
+
+      switch (data.type) {
+        case "console_feedback": {
+          if (data.subtype === "active_cue" || data.active_cue !== undefined) {
+            setConsoleFeedback(prev => ({
+              ...prev,
+              activeCue: data.active_cue ?? data.cue ?? prev.activeCue,
+              commandLine: data.command_line ?? prev.commandLine,
+              channelCount: data.channel_count ?? prev.channelCount,
+            }));
+            if (data.active_cue || data.cue) {
+              setActiveCue(String(data.active_cue ?? data.cue));
+            }
+          }
+          if (data.subtype === "channel_intensity" || data.channels) {
+            const chData = data.channels || [];
+            setChannels(prev => {
+              const updated = [...prev];
+              chData.forEach((ch: any) => {
+                const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
+                if (idx !== -1) {
+                  updated[idx] = {
+                    ...updated[idx],
+                    intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
+                    r: ch.r ?? updated[idx].r,
+                    g: ch.g ?? updated[idx].g,
+                    b: ch.b ?? updated[idx].b,
+                  };
+                }
+              });
+              return updated;
+            });
+          }
+          if (data.subtype === "patch" || data.patch) {
+            const patchData = data.patch || [];
+            setConsolePatch(patchData.map((p: any) => ({
+              channel: p.channel ?? p.chan,
+              universe: p.universe ?? p.uni ?? 1,
+              address: p.address ?? p.addr ?? p.dmx,
+              fixture: p.fixture ?? p.type ?? "",
+              label: p.label ?? "",
+            })));
+          }
+          break;
+        }
+        case "active_cue": {
+          setConsoleFeedback(prev => ({ ...prev, activeCue: data.cue ?? data.value }));
+          if (data.cue || data.value) setActiveCue(String(data.cue ?? data.value));
+          break;
+        }
+        case "channel_intensity": {
+          const chData = data.channels || [];
+          setChannels(prev => {
+            const updated = [...prev];
+            chData.forEach((ch: any) => {
+              const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
+              if (idx !== -1) {
+                updated[idx] = {
+                  ...updated[idx],
+                  intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
+                };
+              }
+            });
+            return updated;
+          });
+          break;
+        }
+        case "patch": {
+          const patchData = data.patch || data.data || [];
+          setConsolePatch(patchData.map((p: any) => ({
+            channel: p.channel ?? p.chan,
+            universe: p.universe ?? p.uni ?? 1,
+            address: p.address ?? p.addr ?? p.dmx,
+            fixture: p.fixture ?? p.type ?? "",
+            label: p.label ?? "",
+          })));
+          break;
+        }
+        case "pong": {
+          setConsoleFeedback(prev => ({
+            ...prev,
+            consoleOnline: true,
+            lastPong: Date.now(),
+          }));
+          break;
+        }
+        case "command_line": {
+          setConsoleFeedback(prev => ({
+            ...prev,
+            commandLine: data.text ?? data.value ?? "",
+          }));
+          break;
+        }
+        default:
+          break;
+      }
+    } catch {
+      // not JSON or unrecognized — ignore
+    }
+  }, []);
+
+  // Send typed message to bridge
+  const sendBridgeMessage = useCallback((msg: Record<string, any>) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  }, []);
+
   // WebSocket connection effect
   useEffect(() => {
     let disposed = false;
@@ -662,9 +797,11 @@ export default function App() {
         const ws = new WebSocket(BRIDGE_URL);
         wsRef.current = ws;
         ws.onopen = () => { if (!disposed) setWsConnected(true); };
+        ws.onmessage = handleBridgeMessage;
         ws.onclose = () => {
           if (!disposed) {
             setWsConnected(false);
+            setConsoleFeedback(prev => ({ ...prev, consoleOnline: false }));
             wsReconnectRef.current = setTimeout(connect, 3000);
           }
         };
@@ -679,7 +816,7 @@ export default function App() {
       if (wsReconnectRef.current) clearTimeout(wsReconnectRef.current);
       if (wsRef.current) wsRef.current.close();
     };
-  }, [BRIDGE_URL]);
+  }, [BRIDGE_URL, handleBridgeMessage]);
 
   // Live state
   const [channels, setChannels] = useState(() =>
