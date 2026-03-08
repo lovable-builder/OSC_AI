@@ -1668,15 +1668,16 @@ export default function App() {
                   </div>
                 )}
                 {steps && (
-                  <div style={{ overflowY: "auto", maxHeight: "300px" }}>
-                    {steps.map((s, i) => (
-                      <StepCard
+                  <div className="console-steps-grid">
+                    {steps.map((step, i) => (
+                      <ConsoleButton
                         key={i}
-                        step={s}
-                        index={i}
+                        label={step.button}
+                        zone={step.zone}
+                        color={step.color}
                         isActive={activeStep === i}
-                        total={steps.length}
-                        onClick={() => setActiveStep(i)}
+                        description={step.desc}
+                        className={activeStep === i ? "active" : ""}
                       />
                     ))}
                   </div>
