@@ -1,39 +1,46 @@
 
 
-# Plan: Implement ETC Console AI Main Component
+## AI Agent OSC Execution via Chat Prompts
 
-## What happened
-You pasted a large single-file React component for the ETC Console AI app, but **the code is truncated** — it cuts off mid-render inside the "LIVE STAGE" module at `{channels.filter(c => c.in`. The component cannot be implemented as-is because the JSX is incomplete.
+### What we're building
+An AI-powered chat input in the OSC Control tab where users type natural language (e.g., "set channel 5 to 80%", "fire cue 3", "blackout everything") and the AI translates it into OSC commands that get executed on the console via the bridge.
 
-## What I can see
-The pasted code contains:
-- **ParticleField** — canvas-based animated background
-- **SpectrumBar** — audio-style visualizer bars
-- **GlowButton** — styled button with glow effects
-- **StepCard** — console instruction step cards
-- **OscCard** — OSC command sender cards
-- **FixtureGrid** — channel color/intensity visualizer
-- **CueStack** — cue list with active highlight
-- **CommandLog** — scrollable OSC command log
-- **Main App** — three modules: AI Guide, OSC Control, Live Stage
+### Architecture
 
-All use inline styles (no Tailwind), and the AI Guide calls the Anthropic API directly from the client (which exposes the API key — should use Lovable AI via edge function instead).
+```text
+User prompt → Edge Function (osc-agent) → Lovable AI → JSON OSC commands → Frontend sendOsc() → Bridge → Console
+```
 
-## Issues to resolve before implementing
+### 1. New Edge Function: `supabase/functions/osc-agent/index.ts`
 
-1. **Incomplete code** — The "LIVE STAGE" module JSX is cut off. I need the rest of the component to implement it fully.
-2. **JSX syntax** — The pasted code has bare `<div>` tags without className/style attributes in many places (likely stripped during copy). This will need reconstruction.
-3. **Direct Anthropic API call** — The `fetchSteps` function calls `api.anthropic.com` directly from the browser, which is insecure and won't work due to CORS. Should be routed through Lovable AI (edge function).
+- Receives `{ prompt, consoleName, context }` where context includes current active cue, channel count, etc.
+- System prompt instructs the AI to return a JSON array of OSC commands: `[{ path, value?, description }]`
+  - e.g. `[{ "path": "/eos/newcmd", "value": "Chan 5 At 80 Enter", "description": "Set channel 5 to 80%" }]`
+- Uses the full `OSC_COMMANDS` reference in the system prompt so the AI knows valid paths and patterns
+- Uses `google/gemini-3-flash-preview` for speed
+- Handles 429/402 errors
 
-## Proposed approach (once complete code is provided)
+### 2. Frontend: Add AI prompt bar to OSC Control tab (`src/pages/Index.tsx`)
 
-1. **Create `src/pages/Index.tsx`** — Convert the full component into a properly typed TypeScript React component
-2. **Split into sub-components** — Place helpers (ParticleField, GlowButton, StepCard, OscCard, etc.) into `src/components/` files
-3. **Replace Anthropic direct call** — Use Lovable AI gateway via an edge function for the AI Guide module
-4. **Load fonts** — Add Google Fonts link to `index.html` for Space Mono and DM Sans
-5. **Update CSS** — Set dark background in `index.css`
+- Add a chat-style input at the top of the OSC Control module (above the command tabs)
+- New state: `aiOscInput`, `aiOscLoading`, `aiOscHistory` (array of `{role, text, commands?}`)
+- On submit:
+  1. Call the `osc-agent` edge function with the prompt + console context
+  2. Receive array of OSC commands
+  3. Display them in a mini-log with descriptions
+  4. Execute each command via `sendOsc()` sequentially (with small delays between commands)
+  5. Show confirmation in the chat area
+- Add a "preview mode" toggle — when on, show commands before executing and require user confirmation
 
-## Next step
+### 3. System Prompt Design
 
-**Please paste the remaining portion of the component** (from the Live Stage module onward through the closing of the App component) so I can implement the complete application.
+The AI system prompt will include:
+- All valid OSC paths and their parameter patterns (derived from the `OSC_COMMANDS` constant)
+- EOS command syntax rules (e.g., `Chan X At Y Enter`, `Cue X Go`)
+- Instructions to return ONLY a JSON array of commands, no markdown
+- Current console state (active cue, online status) for context-aware responses
+
+### Files to create/modify
+- **Create** `supabase/functions/osc-agent/index.ts` — new edge function
+- **Modify** `src/pages/Index.tsx` — add AI prompt bar in OSC Control section, new state, execution logic
 
