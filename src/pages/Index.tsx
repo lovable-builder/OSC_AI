@@ -2311,7 +2311,7 @@ export default function App() {
                   isLive={cuesLive}
                   onGo={(cue) => {
                     setActiveCue(cue.id);
-                    sendOsc("/eos/newcmd", `Cue ${cue.id} Go Enter`);
+                    sendOsc(`/eos/cue/${cue.id}/fire`);
                   }}
                 />
               </div>
