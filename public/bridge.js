@@ -189,22 +189,42 @@ function parseConsoleOscMessage(oscMsg) {
     }
   }
 
-  if (address.includes("patch")) {
-    const patch = [];
-    for (let i = 0; i < args.length - 2; i += 3) {
-      const channel = Number(args[i]);
-      const universe = Number(args[i + 1]);
-      const addr = Number(args[i + 2]);
-      if (!isNaN(channel) && !isNaN(universe) && !isNaN(addr)) {
-        patch.push({ channel, universe, address: addr });
-      }
-    }
-
+  // Patch count: /eos/out/get/patch/count
+  if (address.match(/\/out\/get\/patch\/count/)) {
+    const countArg = args.find((a) => typeof a === "number" || /^\d+$/.test(String(a)));
     return {
       type: "console_feedback",
-      subtype: "patch",
-      patch,
+      subtype: "patch_count",
+      count: countArg ? Number(countArg) : 0,
       address,
+      args,
+    };
+  }
+
+  // Per-channel patch entry: /eos/out/get/patch/1/{index}
+  // EOS args: [channel_number, dmx_absolute_address, fixture_type_string, notes?, ...]
+  // dmx_absolute is 1-based: universe = ceil(addr/512), offset = ((addr-1)%512)+1
+  if (address.match(/\/out\/get\/patch\/\d+\/\d+/)) {
+    const numArgs = args.filter((a) => typeof a === "number");
+    const strArgs = args.filter((a) => typeof a === "string");
+    const channel = numArgs[0] ?? null;
+    const dmxAbsolute = numArgs[1] ?? null;
+    let universe = null;
+    let dmxAddress = null;
+    if (dmxAbsolute !== null && dmxAbsolute > 0) {
+      universe = Math.ceil(dmxAbsolute / 512);
+      dmxAddress = ((dmxAbsolute - 1) % 512) + 1;
+    }
+    return {
+      type: "console_feedback",
+      subtype: "patch_entry",
+      channel: channel !== null ? Number(channel) : null,
+      universe,
+      address: dmxAddress,
+      fixture_type: strArgs[0] ?? null,
+      notes: strArgs[1] ?? null,
+      raw_address: dmxAbsolute,
+      osc_address: address,
       args,
     };
   }
@@ -258,8 +278,30 @@ wss.on("connection", (ws, req) => {
       }
 
       if (msg.type === "request_patch") {
-        udpPort.send({ address: withUserPath("/eos/get/patch/count"), args: [] }, host, port);
-        udpPort.send({ address: withUserPath("/eos/get/patch/1/512"), args: [] }, host, port);
+        // NOTE: /eos/get/patch/... are global endpoints — must NOT use withUserPath
+        const onPatchCount = (oscMsg) => {
+          const address = oscMsg?.address || "";
+          if (!address.match(/\/out\/get\/patch\/count/)) return;
+
+          const args = normalizeArgs(oscMsg.args);
+          const count = args.find((a) => typeof a === "number" || /^\d+$/.test(String(a)));
+          const total = count ? Number(count) : 0;
+
+          udpPort.removeListener("message", onPatchCount);
+
+          // Broadcast the total so the frontend can show progress
+          broadcast({ type: "console_feedback", subtype: "patch_count", count: total });
+
+          for (let i = 0; i < total; i++) {
+            udpPort.send({ address: `/eos/get/patch/1/${i}`, args: [] }, host, port);
+          }
+          console.log(`  → Fetching ${total} patch entries`);
+        };
+
+        udpPort.on("message", onPatchCount);
+        setTimeout(() => udpPort.removeListener("message", onPatchCount), 5000);
+
+        udpPort.send({ address: "/eos/get/patch/count", args: [] }, host, port);
         ws.send(JSON.stringify({ ok: true, type: "request_patch" }));
         return;
       }
