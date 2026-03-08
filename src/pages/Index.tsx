@@ -685,6 +685,16 @@ export default function App() {
   const [oscLogs, setOscLogs] = useState([]);
   const [customPath, setCustomPath] = useState("");
   const [customVal, setCustomVal] = useState("");
+  
+  // AI OSC state
+  const [aiOscInput, setAiOscInput] = useState("");
+  const [aiOscLoading, setAiOscLoading] = useState(false);
+  const [aiOscHistory, setAiOscHistory] = useState<Array<{
+    role: "user" | "assistant";
+    text: string;
+    commands?: Array<{ path: string; value?: string; description: string }>;
+  }>>([]);
+  const [aiOscPreviewMode, setAiOscPreviewMode] = useState(false);
 
   // WebSocket bridge state
   const [bridgeUrl, setBridgeUrl] = useState(() => localStorage.getItem("eos_bridge_url") || import.meta.env.VITE_BRIDGE_URL || "ws://localhost:8080");
@@ -1023,6 +1033,67 @@ export default function App() {
       wsRef.current.send(JSON.stringify({ path, args, host: oscHost, port: parseInt(oscPort, 10) }));
     }
   }, [oscHost, oscPort]);
+
+  // Execute AI OSC commands
+  const executeAiOscCommands = useCallback(async (prompt: string) => {
+    if (!prompt.trim()) return;
+    
+    setAiOscLoading(true);
+    setAiOscHistory(prev => [...prev, { role: "user", text: prompt }]);
+    
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc-agent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ 
+            prompt, 
+            consoleName: selectedConsole?.name || "Unknown",
+            context: {
+              activeCue: consoleFeedback.activeCue,
+              consoleOnline: consoleFeedback.consoleOnline,
+              channelCount: consoleFeedback.channelCount,
+            }
+          }),
+        }
+      );
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      
+      const data = await res.json();
+      const commands = data.commands || [];
+      
+      setAiOscHistory(prev => [...prev, { 
+        role: "assistant", 
+        text: `Generated ${commands.length} command(s)`, 
+        commands 
+      }]);
+      
+      // Execute commands sequentially with small delay
+      for (let i = 0; i < commands.length; i++) {
+        const cmd = commands[i];
+        if (i > 0) await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay between commands
+        sendOsc(cmd.path, cmd.value);
+      }
+      
+    } catch (err: any) {
+      console.error("AI OSC error:", err);
+      setAiOscHistory(prev => [...prev, { 
+        role: "assistant", 
+        text: `Error: ${err.message}` 
+      }]);
+    } finally {
+      setAiOscLoading(false);
+      setAiOscInput("");
+    }
+  }, [selectedConsole, consoleFeedback, sendOsc]);
 
   const handleQuickAction = (action: any) => {
     if (action.value) {
@@ -1831,6 +1902,239 @@ export default function App() {
                     }}
                   >
                     {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── AI AGENT PROMPT BAR ── */}
+            <div
+              style={{
+                background: "rgba(255,107,43,0.04)",
+                border: "1px solid rgba(255,107,43,0.15)",
+                borderRadius: "14px",
+                padding: "16px 20px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              {/* Header row */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "16px" }}>🤖</span>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#FF6B2B", letterSpacing: "0.12em", flex: 1 }}>
+                  AI OSC AGENT — Natural Language to Console Commands
+                </span>
+                {/* Preview mode toggle */}
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                  onClick={() => setAiOscPreviewMode(p => !p)}
+                >
+                  <div
+                    style={{
+                      width: "32px", height: "16px", borderRadius: "8px",
+                      background: aiOscPreviewMode ? "rgba(255,107,43,0.6)" : "rgba(255,255,255,0.08)",
+                      position: "relative", transition: "background 0.2s",
+                    }}
+                  >
+                    <div style={{
+                      position: "absolute", top: "2px",
+                      left: aiOscPreviewMode ? "18px" : "2px",
+                      width: "12px", height: "12px", borderRadius: "50%",
+                      background: aiOscPreviewMode ? "#FF6B2B" : "#444",
+                      transition: "left 0.2s",
+                    }} />
+                  </div>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#444" }}>
+                    PREVIEW
+                  </span>
+                </div>
+              </div>
+
+              {/* Chat history */}
+              {aiOscHistory.length > 0 && (
+                <div
+                  style={{
+                    maxHeight: "200px", overflowY: "auto",
+                    display: "flex", flexDirection: "column", gap: "8px",
+                    background: "rgba(0,0,0,0.3)", borderRadius: "10px",
+                    padding: "12px",
+                  }}
+                >
+                  {aiOscHistory.map((msg, idx) => (
+                    <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                        <span style={{
+                          fontFamily: "'Space Mono', monospace", fontSize: "9px",
+                          color: msg.role === "user" ? "#3b82f6" : "#FF6B2B",
+                          flexShrink: 0, marginTop: "1px",
+                        }}>
+                          {msg.role === "user" ? "YOU" : "AI"}
+                        </span>
+                        <span style={{ fontSize: "12px", color: msg.role === "user" ? "#aaa" : "#e0e0e0", fontFamily: "'DM Sans', sans-serif" }}>
+                          {msg.text}
+                        </span>
+                      </div>
+                      {/* Command preview cards */}
+                      {msg.commands && msg.commands.length > 0 && (
+                        <div style={{ paddingLeft: "30px", display: "flex", flexDirection: "column", gap: "3px" }}>
+                          {msg.commands.map((cmd, ci) => (
+                            <div key={ci} style={{
+                              display: "flex", alignItems: "center", gap: "8px",
+                              background: "rgba(255,107,43,0.05)", borderRadius: "6px",
+                              padding: "4px 10px",
+                            }}>
+                              <span style={{ fontSize: "9px", color: "#22c55e", fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>✓</span>
+                              <span style={{ fontSize: "10px", color: "#FF6B2B88", fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>
+                                {cmd.path}
+                              </span>
+                              {cmd.value && (
+                                <span style={{ fontSize: "10px", color: "#3b82f688", fontFamily: "'Space Mono', monospace" }}>
+                                  [{cmd.value}]
+                                </span>
+                              )}
+                              <span style={{ fontSize: "10px", color: "#555", fontFamily: "'DM Sans', sans-serif", flex: 1 }}>
+                                — {cmd.description}
+                              </span>
+                              {/* In preview mode allow manual fire */}
+                              {aiOscPreviewMode && msg === aiOscHistory[aiOscHistory.length - 1] && (
+                                <button
+                                  onClick={() => sendOsc(cmd.path, cmd.value)}
+                                  style={{
+                                    padding: "2px 8px", borderRadius: "4px",
+                                    border: "1px solid rgba(255,107,43,0.3)",
+                                    background: "rgba(255,107,43,0.1)",
+                                    color: "#FF6B2B", fontSize: "9px",
+                                    fontFamily: "'Space Mono', monospace",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  FIRE
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {aiOscLoading && (
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#FF6B2B" }}>AI</span>
+                      <span style={{ fontSize: "11px", color: "#555", fontFamily: "'DM Sans', sans-serif" }}>Thinking...</span>
+                      <div style={{ display: "flex", gap: "3px" }}>
+                        {[0, 1, 2].map(i => (
+                          <div key={i} style={{
+                            width: "4px", height: "4px", borderRadius: "50%",
+                            background: "#FF6B2B",
+                            animation: `pulse-ring 1.2s ${i * 0.2}s infinite`,
+                          }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Input row */}
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input
+                  value={aiOscInput}
+                  onChange={(e) => setAiOscInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !aiOscLoading && aiOscInput.trim()) {
+                      if (!aiOscPreviewMode) executeAiOscCommands(aiOscInput);
+                      else {
+                        // Preview mode: just show commands, don't auto-fire
+                        executeAiOscCommands(aiOscInput);
+                      }
+                    }
+                  }}
+                  placeholder='Try: "Set channels 1-5 to full", "Fire cue 3", "Blackout stage"...'
+                  disabled={aiOscLoading}
+                  style={{
+                    flex: 1,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,107,43,0.2)",
+                    borderRadius: "8px",
+                    padding: "10px 14px",
+                    color: "#e0e0e0",
+                    fontSize: "13px",
+                    fontFamily: "'DM Sans', sans-serif",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.5)")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.2)")}
+                />
+                <button
+                  onClick={() => { if (!aiOscLoading && aiOscInput.trim()) executeAiOscCommands(aiOscInput); }}
+                  disabled={aiOscLoading || !aiOscInput.trim()}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: aiOscLoading || !aiOscInput.trim()
+                      ? "rgba(255,255,255,0.04)"
+                      : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
+                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#fff",
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "10px",
+                    fontWeight: "700",
+                    cursor: aiOscLoading || !aiOscInput.trim() ? "not-allowed" : "pointer",
+                    letterSpacing: "0.08em",
+                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 16px rgba(255,107,43,0.4)" : "none",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {aiOscLoading ? "..." : aiOscPreviewMode ? "PREVIEW" : "EXECUTE"}
+                </button>
+                {aiOscHistory.length > 0 && (
+                  <button
+                    onClick={() => setAiOscHistory([])}
+                    style={{
+                      padding: "10px 12px", borderRadius: "8px",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      background: "transparent", color: "#333",
+                      fontFamily: "'Space Mono', monospace", fontSize: "9px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    CLR
+                  </button>
+                )}
+              </div>
+
+              {/* Quick suggestions */}
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {[
+                  "Set channel 1 to full",
+                  "Fire cue 1",
+                  "Blackout stage",
+                  "Go to next cue",
+                  "Set channels 1-10 to 50%",
+                  "Undo last action",
+                ].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => { setAiOscInput(s); }}
+                    style={{
+                      padding: "4px 12px", borderRadius: "16px",
+                      background: "transparent",
+                      border: "1px solid rgba(255,107,43,0.12)",
+                      color: "#555", fontFamily: "'DM Sans', sans-serif",
+                      fontSize: "11px", cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseOver={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.4)";
+                      (e.currentTarget as HTMLElement).style.color = "#FF6B2B";
+                    }}
+                    onMouseOut={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.12)";
+                      (e.currentTarget as HTMLElement).style.color = "#555";
+                    }}
+                  >
+                    {s}
                   </button>
                 ))}
               </div>
