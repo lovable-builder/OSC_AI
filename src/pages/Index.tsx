@@ -2329,10 +2329,10 @@ export default function App() {
                     if (idx < cues.length - 1) {
                       const nextCue = cues[idx + 1];
                       setActiveCue(nextCue.id);
-                      sendOsc("/eos/newcmd", `Cue ${nextCue.id} Go Enter`);
+                      sendOsc(`/eos/cue/${nextCue.id}/fire`);
                     } else if (cues.length > 0 && activeCue === null) {
                       setActiveCue(cues[0].id);
-                      sendOsc("/eos/newcmd", `Cue ${cues[0].id} Go Enter`);
+                      sendOsc(`/eos/cue/${cues[0].id}/fire`);
                     }
                   }}
                   active
