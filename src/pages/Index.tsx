@@ -895,6 +895,7 @@ export default function App() {
 
     const slowPoll = setInterval(() => {
       sendBridgeMessage({ type: "request_patch" });
+      sendBridgeMessage({ type: "request_cues" });
     }, 15000);
 
     return () => {
