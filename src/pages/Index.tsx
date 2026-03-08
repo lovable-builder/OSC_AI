@@ -491,12 +491,29 @@ function FixtureGrid({ channels }) {
 }
 
 // ── CUE STACK ─────────────────────────────────────────────────────────────────
-function CueStack({ cues, activeCue, onGo }) {
+function CueStack({ cues, activeCue, onGo, isLive = false }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      {isLive && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px",
+          padding: "4px 10px", borderRadius: "6px",
+          background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)",
+        }}>
+          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#22c55e", animation: "pulse-ring 2s infinite" }} />
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#22c55e", letterSpacing: "0.1em" }}>
+            LIVE FROM CONSOLE — {cues.length} CUES
+          </span>
+        </div>
+      )}
+      {cues.length === 0 && (
+        <div style={{ textAlign: "center", padding: "24px", color: "#333", fontFamily: "'Space Mono', monospace", fontSize: "11px" }}>
+          No cues loaded. Click IMPORT CUES to sync from console.
+        </div>
+      )}
       {cues.map((cue, i) => (
         <div
-          key={i}
+          key={cue.id + "-" + i}
           onClick={() => onGo(cue)}
           style={{
             display: "flex",
@@ -513,34 +530,36 @@ function CueStack({ cues, activeCue, onGo }) {
         >
           <div
             style={{
-              width: "6px",
-              height: "6px",
-              borderRadius: "50%",
+              width: "6px", height: "6px", borderRadius: "50%",
               background: activeCue === cue.id ? "#FF6B2B" : "#333",
               flexShrink: 0,
               boxShadow: activeCue === cue.id ? "0 0 8px #FF6B2B" : "none",
             }}
           />
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: activeCue === cue.id ? "#FF6B2B" : "#666",
-              width: "36px",
-            }}
-          >
+          <span style={{
+            fontFamily: "'Space Mono', monospace", fontSize: "11px",
+            color: activeCue === cue.id ? "#FF6B2B" : "#666", width: "44px",
+          }}>
             {cue.id}
           </span>
-          <span
-            style={{
-              flex: 1,
-              fontSize: "12px",
-              color: activeCue === cue.id ? "#e0e0e0" : "#555",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            {cue.label}
+          <span style={{
+            flex: 1, fontSize: "12px",
+            color: activeCue === cue.id ? "#e0e0e0" : "#555",
+            fontFamily: "'DM Sans', sans-serif",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {cue.label || "—"}
           </span>
+          {cue.upTime != null && (
+            <span style={{ fontSize: "9px", color: "#3b82f6", fontFamily: "'Space Mono', monospace" }}>
+              ↑{cue.upTime}s
+            </span>
+          )}
+          {cue.downTime != null && (
+            <span style={{ fontSize: "9px", color: "#8b5cf6", fontFamily: "'Space Mono', monospace" }}>
+              ↓{cue.downTime}s
+            </span>
+          )}
           <span style={{ fontSize: "10px", color: "#444", fontFamily: "'Space Mono', monospace" }}>{cue.time}s</span>
         </div>
       ))}
