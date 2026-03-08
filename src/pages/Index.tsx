@@ -961,18 +961,37 @@ export default function App() {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages]);
 
-  const sendOsc = useCallback((path, vals = {}) => {
+  // Send an OSC message via the bridge.
+  // For /eos/newcmd: value is the command string (e.g. "Cue 5 Go Enter")
+  // For /eos/key/*: no value needed
+  // For /eos/chan/*/param/*: value is a float
+  // For /eos/sub/*/level: value is float 0.0-1.0
+  // For /eos/macro/*/fire: no value needed
+  const sendOsc = useCallback((path: string, value?: string | number | null) => {
     const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
-    const valStr = Object.values(vals).filter(Boolean).join(", ");
-    setOscLogs((prev) => [...prev.slice(-99), { time, path, val: valStr }]);
-    // Send via WebSocket bridge
+    const displayVal = value != null ? String(value) : "";
+    setOscLogs((prev) => [...prev.slice(-99), { time, path, val: displayVal }]);
+
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ path, value: valStr || null, host: oscHost, port: parseInt(oscPort, 10) }));
+      // Build proper typed args per EOS spec
+      let args: Array<{type: string; value: string | number}> = [];
+      if (value != null && value !== "") {
+        if (typeof value === "number" || (!isNaN(Number(value)) && path.includes("/param/"))) {
+          args = [{ type: "f", value: parseFloat(String(value)) }];
+        } else if (typeof value === "string") {
+          args = [{ type: "s", value }];
+        }
+      }
+      wsRef.current.send(JSON.stringify({ path, args, host: oscHost, port: parseInt(oscPort, 10) }));
     }
   }, [oscHost, oscPort]);
 
-  const handleQuickAction = (action) => {
-    sendOsc(action.path);
+  const handleQuickAction = (action: any) => {
+    if (action.value) {
+      sendOsc(action.path, action.value);
+    } else {
+      sendOsc(action.path);
+    }
     if (action.label === "GO" && activeCue === null) setActiveCue("1");
   };
 
