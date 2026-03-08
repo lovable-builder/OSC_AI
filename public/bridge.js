@@ -231,7 +231,7 @@ wss.on("connection", (ws, req) => {
       const port = parseInt(msg.port || "3033", 10);
 
       if (msg.type === "ping") {
-        udpPort.send({ address: withUserPath("/eos/get/version"), args: [] }, host, port);
+        udpPort.send({ address: "/eos/ping", args: [] }, host, port);
         ws.send(JSON.stringify({ type: "pong", source: "bridge", timestamp: Date.now() }));
         return;
       }
