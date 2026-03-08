@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * EOS AI — Local OSC Bridge Server
- * 
+ *
  * This script receives WebSocket messages from the EOS AI web app
  * and relays them as UDP OSC packets to your lighting console.
- * 
+ *
  * Usage:
  *   1. Install dependencies:  npm install ws osc
  *   2. Run the bridge:        node bridge.js
@@ -252,23 +252,44 @@ wss.on("connection", (ws, req) => {
       }
 
       if (msg.type === "request_levels") {
-        // GET requests: do NOT use withUserPath — EOS GET endpoints are global
-        udpPort.send({ address: "/eos/get/chans/1/512", args: [] }, host, port);
+        udpPort.send({ address: withUserPath("/eos/get/chans/1/512"), args: [] }, host, port);
         ws.send(JSON.stringify({ ok: true, type: "request_levels" }));
         return;
       }
 
       if (msg.type === "request_patch") {
-        udpPort.send({ address: "/eos/get/patch/count", args: [] }, host, port);
-        udpPort.send({ address: "/eos/get/patch/1/512", args: [] }, host, port);
+        udpPort.send({ address: withUserPath("/eos/get/patch/count"), args: [] }, host, port);
+        udpPort.send({ address: withUserPath("/eos/get/patch/1/512"), args: [] }, host, port);
         ws.send(JSON.stringify({ ok: true, type: "request_patch" }));
         return;
       }
 
       if (msg.type === "request_cues") {
         const cueList = msg.cueList || "1";
-        // Only request count — do NOT flood 100 individual cue GETs
-        udpPort.send({ address: `/eos/get/cue/${cueList}/count`, args: [] }, host, port);
+
+        // Wait for count response before fetching individual cues
+        const onCount = (oscMsg) => {
+          const address = oscMsg?.address || "";
+          if (!address.match(new RegExp(`/out/get/cue/${cueList}/count`))) return;
+
+          const args = normalizeArgs(oscMsg.args);
+          const count = args.find((a) => typeof a === "number" || /^\d+$/.test(String(a)));
+          const total = count ? Number(count) : 0;
+
+          udpPort.removeListener("message", onCount);
+
+          for (let i = 0; i < total; i++) {
+            udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/${i}`), args: [] }, host, port);
+          }
+          console.log(`  → Fetching ${total} cues from list ${cueList}`);
+        };
+
+        udpPort.on("message", onCount);
+
+        // Safety timeout — remove listener if console never responds
+        setTimeout(() => udpPort.removeListener("message", onCount), 5000);
+
+        udpPort.send({ address: withUserPath(`/eos/get/cue/${cueList}/count`), args: [] }, host, port);
         ws.send(JSON.stringify({ ok: true, type: "request_cues" }));
         return;
       }
@@ -287,7 +308,9 @@ wss.on("connection", (ws, req) => {
         oscMsg = parseEosCommand(path, value);
       }
       udpPort.send(oscMsg, host, port);
-      console.log(`  → OSC  ${oscMsg.address}  ${oscMsg.args.length ? JSON.stringify(oscMsg.args.map(a => a.value)) : "(no args)"}  → ${host}:${port}`);
+      console.log(
+        `  → OSC  ${oscMsg.address}  ${oscMsg.args.length ? JSON.stringify(oscMsg.args.map((a) => a.value)) : "(no args)"}  → ${host}:${port}`,
+      );
 
       ws.send(JSON.stringify({ ok: true, path: oscMsg.address, host, port }));
     } catch (err) {
