@@ -325,17 +325,33 @@ function StepCard({ step, index, isActive, total, onClick }) {
 }
 
 // ── OSC COMMAND CARD ───────────────────────────────────────────────────────────
-function OscCard({ cmd, onSend }) {
+function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: string | number | null) => void }) {
   const [vals, setVals] = useState<Record<string, string>>({});
   const [fired, setFired] = useState(false);
 
-  const resolvedPath = cmd.path
-    .replace("{a}", vals.a || "…")
-    .replace("{b}", vals.b || "…")
-    .replace("{c}", vals.c || "…");
+  // Build display path: for newcmd show the command string, for others show the resolved path
+  const resolvedPath = cmd.path === "/eos/newcmd"
+    ? `/eos/newcmd → "${(cmd.value || "").replace("{a}", vals.a || "…").replace("{b}", vals.b || "…").replace("{c}", vals.c || "…")}"`
+    : cmd.path.replace("{a}", vals.a || "…").replace("{b}", vals.b || "…").replace("{c}", vals.c || "…");
 
   const handleSend = () => {
-    onSend(resolvedPath, vals);
+    if (cmd.isKey && !cmd.value) {
+      // Key press or macro fire — resolve path with params, no value
+      const resolvedKeyPath = cmd.path.replace("{a}", vals.a || "").replace("{b}", vals.b || "");
+      onSend(resolvedKeyPath);
+    } else if (cmd.path === "/eos/newcmd") {
+      // newcmd — send path + command string as value
+      const cmdStr = (cmd.value || "").replace("{a}", vals.a || "").replace("{b}", vals.b || "").replace("{c}", vals.c || "");
+      onSend("/eos/newcmd", cmdStr);
+    } else if (cmd.isFloat) {
+      // Direct param path — resolve path and send float value
+      const resolvedParamPath = cmd.path.replace("{a}", vals.a || "1");
+      const floatVal = parseFloat((cmd.value || "").replace("{b}", vals.b || "0").replace("{a}", vals.a || "0"));
+      onSend(resolvedParamPath, isNaN(floatVal) ? 0 : floatVal);
+    } else {
+      const resolvedP = cmd.path.replace("{a}", vals.a || "").replace("{b}", vals.b || "").replace("{c}", vals.c || "");
+      onSend(resolvedP, vals.a || null);
+    }
     setFired(true);
     setTimeout(() => setFired(false), 600);
   };
