@@ -153,9 +153,9 @@ function parseConsoleOscMessage(oscMsg) {
     };
   }
 
-  // Active cue (running cue feedback) — only match genuine active/pending cue notifications
-  // NOT /get/ responses (those are handled by cue_data/cue_count above)
-  if (address.includes("cue") && address.includes("/out/") && !address.includes("/get/") && !address.includes("/out/get/")) {
+  // Active cue feedback: only trust explicit active/pending cue endpoints.
+  // This prevents cue-list sync replies (e.g. /out/get/cue/.../99) from overriding active cue.
+  if (/\/out\/(active|pending)\/cue(\/|$)/.test(address)) {
     const cueArg = args.find((a) => typeof a === "number" || /^\d+(\.\d+)?$/.test(String(a)));
     return {
       type: "console_feedback",
