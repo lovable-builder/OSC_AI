@@ -738,8 +738,13 @@ export default function App() {
 
   const sendOsc = useCallback((path, vals = {}) => {
     const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
-    setOscLogs((prev) => [...prev.slice(-99), { time, path, val: Object.values(vals).filter(Boolean).join(", ") }]);
-  }, []);
+    const valStr = Object.values(vals).filter(Boolean).join(", ");
+    setOscLogs((prev) => [...prev.slice(-99), { time, path, val: valStr }]);
+    // Send via WebSocket bridge
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ path, value: valStr || null, host: oscHost, port: parseInt(oscPort, 10) }));
+    }
+  }, [oscHost, oscPort]);
 
   const handleQuickAction = (action) => {
     sendOsc(action.path);
