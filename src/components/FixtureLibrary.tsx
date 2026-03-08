@@ -138,9 +138,8 @@ export default function FixtureLibrary({ onPatch }: FixtureLibraryProps) {
       };
       newEntries.push(entry);
 
-      // Send OSC patch command for each
-      // Tokenized path format works across more bridge variants
-      onPatch(`/eos/newcmd/Chan/${ch}/Patch/${uni}/${addr}/Enter`, {});
+      // Send EOS command-line patch command via /eos/cmd ("#" acts as Enter)
+      onPatch("/eos/cmd", { a: `Chan ${ch} Patch ${uni}/${addr}#` });
     }
 
     setPatchList((prev) => [...prev, ...newEntries]);
