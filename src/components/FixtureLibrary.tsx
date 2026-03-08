@@ -218,8 +218,8 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
   };
 
   // Effect: when consolePatch arrives after import request, populate patchList
-  // We use a simple approach: check if importRequested and consolePatch has data
-  if (importRequested && consolePatch.length > 0) {
+  useEffect(() => {
+    if (!importRequested || consolePatch.length === 0) return;
     setImportRequested(false);
     const genericFixture: Fixture = {
       id: "imported",
@@ -242,7 +242,7 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
     }));
 
     setPatchList(imported);
-  }
+  }, [importRequested, consolePatch]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
