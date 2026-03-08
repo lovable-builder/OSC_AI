@@ -15,78 +15,78 @@ const OSC_TABS = ["Channels", "Cues", "Effects", "Patching", "Groups", "Palettes
 
 const OSC_COMMANDS = {
   Channels: [
-    { label: "Select", path: "/eos/newcmd/Chan {a} Enter", params: ["Channel"] },
-    { label: "Intensity", path: "/eos/newcmd/Chan {a} At {b} Enter", params: ["Channel", "Level 0–100"] },
-    { label: "Full", path: "/eos/newcmd/Chan {a} Full Enter", params: ["Channel"] },
-    { label: "Out", path: "/eos/newcmd/Chan {a} Out Enter", params: ["Channel"] },
-    { label: "Range", path: "/eos/newcmd/Chan {a} Thru {b} Enter", params: ["From", "To"] },
-    { label: "Snap", path: "/eos/newcmd/Chan {a} Sneak Enter", params: ["Channel"] },
+    { label: "Select", path: "/eos/newcmd", value: "Chan {a} Enter", params: ["Channel"] },
+    { label: "Intensity", path: "/eos/chan/{a}/param/intensity", value: "{b}", params: ["Channel", "Level 0–100"], isFloat: true },
+    { label: "Full", path: "/eos/newcmd", value: "Chan {a} Full Enter", params: ["Channel"] },
+    { label: "Out", path: "/eos/newcmd", value: "Chan {a} Out Enter", params: ["Channel"] },
+    { label: "Range", path: "/eos/newcmd", value: "Chan {a} Thru {b} At {c} Enter", params: ["From", "To", "Level"] },
+    { label: "Sneak", path: "/eos/newcmd", value: "Chan {a} Sneak Enter", params: ["Channel"] },
   ],
   Cues: [
-    { label: "Go", path: "/eos/cue/go", params: [] },
-    { label: "Back", path: "/eos/cue/back", params: [] },
-    { label: "Load", path: "/eos/cue/{a}/fire", params: ["Cue #"] },
-    { label: "Record", path: "/eos/newcmd/Cue {a} Record Enter", params: ["Cue #"] },
-    { label: "Update", path: "/eos/newcmd/Cue {a} Update Enter", params: ["Cue #"] },
-    { label: "Delete", path: "/eos/newcmd/Cue {a} Delete Enter", params: ["Cue #"] },
-    { label: "Label", path: "/eos/newcmd/Cue {a} Label {b} Enter", params: ["Cue #", "Label"] },
-    { label: "Time", path: "/eos/newcmd/Cue {a} Time {b} Enter", params: ["Cue #", "Seconds"] },
+    { label: "Go", path: "/eos/key/go", params: [], isKey: true },
+    { label: "Back", path: "/eos/key/back", params: [], isKey: true },
+    { label: "Fire Cue", path: "/eos/newcmd", value: "Cue {a} Go Enter", params: ["Cue #"] },
+    { label: "Record", path: "/eos/newcmd", value: "Cue {a} Record Enter", params: ["Cue #"] },
+    { label: "Update", path: "/eos/newcmd", value: "Cue {a} Update Enter", params: ["Cue #"] },
+    { label: "Delete", path: "/eos/newcmd", value: "Cue {a} Delete Enter Enter", params: ["Cue #"] },
+    { label: "Label", path: "/eos/newcmd", value: "Cue {a} Label {b} Enter", params: ["Cue #", "Label"] },
+    { label: "Time", path: "/eos/newcmd", value: "Cue {a} Time {b} Enter", params: ["Cue #", "Seconds"] },
   ],
   Effects: [
-    { label: "Apply", path: "/eos/newcmd/Chan {a} Effect {b} Enter", params: ["Channel", "Effect #"] },
-    { label: "Rate", path: "/eos/fx/{a}/rate", params: ["Effect #"] },
-    { label: "Size", path: "/eos/fx/{a}/size", params: ["Effect #"] },
-    { label: "Offset", path: "/eos/fx/{a}/offset", params: ["Effect #"] },
-    { label: "Stop", path: "/eos/newcmd/Chan {a} Effect Stop Enter", params: ["Channel"] },
-    { label: "Record FX", path: "/eos/newcmd/Effect {a} Record Enter", params: ["Effect #"] },
+    { label: "Apply", path: "/eos/newcmd", value: "Chan {a} Effect {b} Enter", params: ["Channel", "Effect #"] },
+    { label: "Rate", path: "/eos/newcmd", value: "Effect {a} Rate {b} Enter", params: ["Effect #", "Rate 0–200"] },
+    { label: "Size", path: "/eos/newcmd", value: "Effect {a} Size {b} Enter", params: ["Effect #", "Size 0–100"] },
+    { label: "Offset", path: "/eos/newcmd", value: "Effect {a} Offset {b} Enter", params: ["Effect #", "Offset 0–360"] },
+    { label: "Stop", path: "/eos/newcmd", value: "Chan {a} Effect Stop Enter", params: ["Channel"] },
+    { label: "Record FX", path: "/eos/newcmd", value: "Effect {a} Record Enter", params: ["Effect #"] },
   ],
   Patching: [
-    { label: "Patch", path: "/eos/newcmd/Chan {a} Patch {b} Enter", params: ["Channel", "DMX Addr"] },
-    { label: "Unpatch", path: "/eos/newcmd/Chan {a} Unpatch Enter", params: ["Channel"] },
-    { label: "Offset", path: "/eos/newcmd/Chan {a} Offset {b} Enter", params: ["Channel", "Offset"] },
-    { label: "Universe", path: "/eos/newcmd/Chan {a} Patch {b}/{c} Enter", params: ["Chan", "Universe", "Addr"] },
+    { label: "Patch Mode", path: "/eos/key/patch", params: [], isKey: true },
+    { label: "Address", path: "/eos/newcmd", value: "Chan {a} Address {b} Enter", params: ["Channel", "DMX Addr"] },
+    { label: "Unpatch", path: "/eos/newcmd", value: "Chan {a} Address 0 Enter", params: ["Channel"] },
+    { label: "Universe", path: "/eos/newcmd", value: "Chan {a} Address {b}/{c} Enter", params: ["Chan", "Universe", "Addr"] },
   ],
   Groups: [
-    { label: "Select", path: "/eos/newcmd/Group {a} Enter", params: ["Group #"] },
-    { label: "Record", path: "/eos/newcmd/Group {a} Record Enter", params: ["Group #"] },
-    { label: "Update", path: "/eos/newcmd/Group {a} Update Enter", params: ["Group #"] },
-    { label: "Delete", path: "/eos/newcmd/Group {a} Delete Enter", params: ["Group #"] },
+    { label: "Select", path: "/eos/newcmd", value: "Group {a} Enter", params: ["Group #"] },
+    { label: "At Level", path: "/eos/newcmd", value: "Group {a} At {b} Enter", params: ["Group #", "Level 0–100"] },
+    { label: "Record", path: "/eos/newcmd", value: "Group {a} Record Enter", params: ["Group #"] },
+    { label: "Delete", path: "/eos/newcmd", value: "Group {a} Delete Enter", params: ["Group #"] },
   ],
   Palettes: [
-    { label: "Color", path: "/eos/newcmd/Color Palette {a} Enter", params: ["Palette #"] },
-    { label: "Intensity", path: "/eos/newcmd/Intensity Palette {a} Enter", params: ["Palette #"] },
-    { label: "Focus", path: "/eos/newcmd/Focus Palette {a} Enter", params: ["Palette #"] },
-    { label: "Beam", path: "/eos/newcmd/Beam Palette {a} Enter", params: ["Palette #"] },
-    { label: "Rec Color", path: "/eos/newcmd/Color Palette {a} Record Enter", params: ["Palette #"] },
-    { label: "Update", path: "/eos/newcmd/Color Palette {a} Update Enter", params: ["Palette #"] },
+    { label: "Color", path: "/eos/newcmd", value: "Color Palette {a} Enter", params: ["Palette #"] },
+    { label: "Intensity", path: "/eos/newcmd", value: "Intensity Palette {a} Enter", params: ["Palette #"] },
+    { label: "Focus", path: "/eos/newcmd", value: "Focus Palette {a} Enter", params: ["Palette #"] },
+    { label: "Beam", path: "/eos/newcmd", value: "Beam Palette {a} Enter", params: ["Palette #"] },
+    { label: "Rec Color", path: "/eos/newcmd", value: "Color Palette {a} Record Enter", params: ["Palette #"] },
+    { label: "Update", path: "/eos/newcmd", value: "Color Palette {a} Update Enter", params: ["Palette #"] },
   ],
   Macros: [
-    { label: "Fire", path: "/eos/macro/{a}/fire", params: ["Macro #"] },
-    { label: "Record", path: "/eos/newcmd/Macro {a} Record Enter", params: ["Macro #"] },
-    { label: "Stop", path: "/eos/newcmd/Macro {a} Stop Enter", params: ["Macro #"] },
-    { label: "Delete", path: "/eos/newcmd/Macro {a} Delete Enter", params: ["Macro #"] },
+    { label: "Fire", path: "/eos/macro/{a}/fire", params: ["Macro #"], isKey: true },
+    { label: "Record", path: "/eos/newcmd", value: "Macro {a} Record Enter", params: ["Macro #"] },
+    { label: "Stop", path: "/eos/newcmd", value: "Macro {a} Stop Enter", params: ["Macro #"] },
+    { label: "Delete", path: "/eos/newcmd", value: "Macro {a} Delete Enter", params: ["Macro #"] },
   ],
   System: [
-    { label: "Undo", path: "/eos/newcmd/Undo Enter", params: [] },
-    { label: "Clear", path: "/eos/newcmd/Clear Enter", params: [] },
-    { label: "Highlight", path: "/eos/key/highlight", params: [] },
-    { label: "Blind", path: "/eos/key/blind", params: [] },
-    { label: "Live", path: "/eos/key/live", params: [] },
-    { label: "Stage", path: "/eos/key/stage", params: [] },
-    { label: "Park", path: "/eos/newcmd/Park Enter", params: [] },
-    { label: "Assert", path: "/eos/newcmd/Assert Enter", params: [] },
+    { label: "Undo", path: "/eos/newcmd", value: "Undo Enter", params: [] },
+    { label: "Clear", path: "/eos/key/clear", params: [], isKey: true },
+    { label: "Highlight", path: "/eos/key/highlight", params: [], isKey: true },
+    { label: "Blind", path: "/eos/key/blind", params: [], isKey: true },
+    { label: "Live", path: "/eos/key/live", params: [], isKey: true },
+    { label: "Stage", path: "/eos/key/stage", params: [], isKey: true },
+    { label: "Park", path: "/eos/key/park", params: [], isKey: true },
+    { label: "Assert", path: "/eos/key/assert", params: [], isKey: true },
   ],
 };
 
 const QUICK_ACTIONS = [
-  { label: "GO", path: "/eos/cue/go", color: "#22c55e" },
-  { label: "BACK", path: "/eos/cue/back", color: "#3b82f6" },
-  { label: "CLEAR", path: "/eos/newcmd/Clear Enter", color: "#f97316" },
-  { label: "UNDO", path: "/eos/newcmd/Undo Enter", color: "#8b5cf6" },
+  { label: "GO", path: "/eos/key/go", color: "#22c55e" },
+  { label: "BACK", path: "/eos/key/back", color: "#3b82f6" },
+  { label: "CLEAR", path: "/eos/key/clear", color: "#f97316" },
+  { label: "UNDO", path: "/eos/newcmd", value: "Undo Enter", color: "#8b5cf6" },
   { label: "BLIND", path: "/eos/key/blind", color: "#ec4899" },
   { label: "LIVE", path: "/eos/key/live", color: "#10b981" },
-  { label: "FULL", path: "/eos/newcmd/Full Enter", color: "#f59e0b" },
-  { label: "OUT", path: "/eos/newcmd/Out Enter", color: "#6b7280" },
+  { label: "FULL", path: "/eos/newcmd", value: "Full Enter", color: "#f59e0b" },
+  { label: "OUT", path: "/eos/newcmd", value: "Out Enter", color: "#6b7280" },
 ];
 
 const STEP_COLORS = {
@@ -325,17 +325,33 @@ function StepCard({ step, index, isActive, total, onClick }) {
 }
 
 // ── OSC COMMAND CARD ───────────────────────────────────────────────────────────
-function OscCard({ cmd, onSend }) {
+function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: string | number | null) => void }) {
   const [vals, setVals] = useState<Record<string, string>>({});
   const [fired, setFired] = useState(false);
 
-  const resolvedPath = cmd.path
-    .replace("{a}", vals.a || "…")
-    .replace("{b}", vals.b || "…")
-    .replace("{c}", vals.c || "…");
+  // Build display path: for newcmd show the command string, for others show the resolved path
+  const resolvedPath = cmd.path === "/eos/newcmd"
+    ? `/eos/newcmd → "${(cmd.value || "").replace("{a}", vals.a || "…").replace("{b}", vals.b || "…").replace("{c}", vals.c || "…")}"`
+    : cmd.path.replace("{a}", vals.a || "…").replace("{b}", vals.b || "…").replace("{c}", vals.c || "…");
 
   const handleSend = () => {
-    onSend(resolvedPath, vals);
+    if (cmd.isKey && !cmd.value) {
+      // Key press or macro fire — resolve path with params, no value
+      const resolvedKeyPath = cmd.path.replace("{a}", vals.a || "").replace("{b}", vals.b || "");
+      onSend(resolvedKeyPath);
+    } else if (cmd.path === "/eos/newcmd") {
+      // newcmd — send path + command string as value
+      const cmdStr = (cmd.value || "").replace("{a}", vals.a || "").replace("{b}", vals.b || "").replace("{c}", vals.c || "");
+      onSend("/eos/newcmd", cmdStr);
+    } else if (cmd.isFloat) {
+      // Direct param path — resolve path and send float value
+      const resolvedParamPath = cmd.path.replace("{a}", vals.a || "1");
+      const floatVal = parseFloat((cmd.value || "").replace("{b}", vals.b || "0").replace("{a}", vals.a || "0"));
+      onSend(resolvedParamPath, isNaN(floatVal) ? 0 : floatVal);
+    } else {
+      const resolvedP = cmd.path.replace("{a}", vals.a || "").replace("{b}", vals.b || "").replace("{c}", vals.c || "");
+      onSend(resolvedP, vals.a || null);
+    }
     setFired(true);
     setTimeout(() => setFired(false), 600);
   };
@@ -961,18 +977,37 @@ export default function App() {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages]);
 
-  const sendOsc = useCallback((path, vals = {}) => {
+  // Send an OSC message via the bridge.
+  // For /eos/newcmd: value is the command string (e.g. "Cue 5 Go Enter")
+  // For /eos/key/*: no value needed
+  // For /eos/chan/*/param/*: value is a float
+  // For /eos/sub/*/level: value is float 0.0-1.0
+  // For /eos/macro/*/fire: no value needed
+  const sendOsc = useCallback((path: string, value?: string | number | null) => {
     const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
-    const valStr = Object.values(vals).filter(Boolean).join(", ");
-    setOscLogs((prev) => [...prev.slice(-99), { time, path, val: valStr }]);
-    // Send via WebSocket bridge
+    const displayVal = value != null ? String(value) : "";
+    setOscLogs((prev) => [...prev.slice(-99), { time, path, val: displayVal }]);
+
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ path, value: valStr || null, host: oscHost, port: parseInt(oscPort, 10) }));
+      // Build proper typed args per EOS spec
+      let args: Array<{type: string; value: string | number}> = [];
+      if (value != null && value !== "") {
+        if (typeof value === "number" || (!isNaN(Number(value)) && path.includes("/param/"))) {
+          args = [{ type: "f", value: parseFloat(String(value)) }];
+        } else if (typeof value === "string") {
+          args = [{ type: "s", value }];
+        }
+      }
+      wsRef.current.send(JSON.stringify({ path, args, host: oscHost, port: parseInt(oscPort, 10) }));
     }
   }, [oscHost, oscPort]);
 
-  const handleQuickAction = (action) => {
-    sendOsc(action.path);
+  const handleQuickAction = (action: any) => {
+    if (action.value) {
+      sendOsc(action.path, action.value);
+    } else {
+      sendOsc(action.path);
+    }
     if (action.label === "GO" && activeCue === null) setActiveCue("1");
   };
 
@@ -1834,7 +1869,7 @@ export default function App() {
                       value={customVal}
                       onChange={(e) => setCustomVal(e.target.value)}
                       placeholder="value (optional)"
-                      onKeyDown={(e) => e.key === "Enter" && customPath && sendOsc(customPath, { a: customVal })}
+                      onKeyDown={(e) => e.key === "Enter" && customPath && sendOsc(customPath, customVal || undefined)}
                       style={{
                         flex: 1,
                         background: "rgba(255,255,255,0.04)",
@@ -1852,7 +1887,7 @@ export default function App() {
                     <GlowButton
                       onClick={() => {
                         if (customPath) {
-                          sendOsc(customPath, { a: customVal });
+                          sendOsc(customPath, customVal || undefined);
                           setCustomPath("");
                           setCustomVal("");
                         }
@@ -2249,7 +2284,7 @@ export default function App() {
                   isLive={cuesLive}
                   onGo={(cue) => {
                     setActiveCue(cue.id);
-                    sendOsc(`/eos/cue/${cue.id}/fire`);
+                    sendOsc("/eos/newcmd", `Cue ${cue.id} Go Enter`);
                   }}
                 />
               </div>
@@ -2266,7 +2301,7 @@ export default function App() {
                     const idx = cues.findIndex((c) => c.id === activeCue);
                     if (idx < cues.length - 1) {
                       setActiveCue(cues[idx + 1].id);
-                      sendOsc("/eos/cue/go");
+                      sendOsc("/eos/key/go");
                     }
                   }}
                   active
@@ -2279,7 +2314,7 @@ export default function App() {
                     const idx = cues.findIndex((c) => c.id === activeCue);
                     if (idx > 0) {
                       setActiveCue(cues[idx - 1].id);
-                      sendOsc("/eos/cue/back");
+                      sendOsc("/eos/key/back");
                     }
                   }}
                   color="#3b82f6"
@@ -2335,7 +2370,7 @@ export default function App() {
                           const rect = e.currentTarget.getBoundingClientRect();
                           const newVal = Math.round((1 - (e.clientY - rect.top) / rect.height) * 100);
                           setVal(Math.max(0, Math.min(100, newVal)));
-                          sendOsc(`/eos/sub/${i + 1}`, { a: newVal });
+                          sendOsc(`/eos/sub/${i + 1}/level`, newVal / 100);
                         }}
                       >
                         <div

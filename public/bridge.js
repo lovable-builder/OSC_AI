@@ -231,7 +231,7 @@ wss.on("connection", (ws, req) => {
       const port = parseInt(msg.port || "3033", 10);
 
       if (msg.type === "ping") {
-        udpPort.send({ address: withUserPath("/eos/get/version"), args: [] }, host, port);
+        udpPort.send({ address: "/eos/ping", args: [] }, host, port);
         ws.send(JSON.stringify({ type: "pong", source: "bridge", timestamp: Date.now() }));
         return;
       }
@@ -259,14 +259,19 @@ wss.on("connection", (ws, req) => {
         return;
       }
 
-      const { path, value } = msg;
+      const { path, args: rawArgs, value } = msg;
       if (!path) {
         console.warn("  ⚠ Invalid message (missing path):", msg);
         ws.send(JSON.stringify({ error: "Missing path" }));
         return;
       }
 
-      const oscMsg = parseEosCommand(path, value);
+      let oscMsg;
+      if (Array.isArray(rawArgs)) {
+        oscMsg = { address: withUserPath(path), args: rawArgs };
+      } else {
+        oscMsg = parseEosCommand(path, value);
+      }
       udpPort.send(oscMsg, host, port);
       console.log(`  → OSC  ${oscMsg.address}  ${oscMsg.args.length ? JSON.stringify(oscMsg.args.map(a => a.value)) : "(no args)"}  → ${host}:${port}`);
 

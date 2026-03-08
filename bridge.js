@@ -238,7 +238,7 @@ wss.on("connection", (ws, req) => {
 
       // Poll-style request APIs from app
       if (msg.type === "ping") {
-        udpPort.send({ address: withUserPath("/eos/get/version"), args: [] }, host, port);
+        udpPort.send({ address: "/eos/ping", args: [] }, host, port);
         ws.send(JSON.stringify({ type: "pong", source: "bridge", timestamp: Date.now() }));
         return;
       }
@@ -267,13 +267,22 @@ wss.on("connection", (ws, req) => {
         return;
       }
 
-      const { path, value } = msg;
+      const { path, args: rawArgs, value } = msg;
       if (!path) {
         ws.send(JSON.stringify({ error: "Missing OSC path" }));
         return;
       }
 
-      const oscMsg = parseEosCommand(path, value);
+      // New format: app sends { path, args: [{type, value}] }
+      // Legacy format: app sends { path, value }
+      let oscMsg;
+      if (Array.isArray(rawArgs)) {
+        // Direct typed args from app — send as-is with user path
+        oscMsg = { address: withUserPath(path), args: rawArgs };
+      } else {
+        // Legacy: parse path + value
+        oscMsg = parseEosCommand(path, value);
+      }
       udpPort.send(oscMsg, host, port);
 
       console.log(

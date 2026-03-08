@@ -58,7 +58,7 @@ interface PatchEntry {
 // ── Component ────────────────────────────────────────────────────────────────
 
 interface FixtureLibraryProps {
-  onPatch: (path: string, vals: Record<string, string>) => void;
+  onPatch: (path: string, value?: string | number | null) => void;
 }
 
 export default function FixtureLibrary({ onPatch }: FixtureLibraryProps) {
@@ -139,7 +139,7 @@ export default function FixtureLibrary({ onPatch }: FixtureLibraryProps) {
       newEntries.push(entry);
 
       // Send EOS command-line patch command via /eos/cmd ("#" acts as Enter)
-      onPatch("/eos/cmd", { a: `Chan ${ch} Patch ${uni}/${addr}#` });
+      onPatch("/eos/newcmd", `Chan ${ch} Address ${uni}/${addr} Enter`);
     }
 
     setPatchList((prev) => [...prev, ...newEntries]);
@@ -148,7 +148,7 @@ export default function FixtureLibrary({ onPatch }: FixtureLibraryProps) {
   const removePatch = (id: string) => {
     const entry = patchList.find((p) => p.id === id);
     if (entry) {
-      onPatch("/eos/cmd", { a: `Chan ${entry.startChannel} Unpatch#` });
+      onPatch("/eos/newcmd", `Chan ${entry.startChannel} Address 0 Enter`);
     }
     setPatchList((prev) => prev.filter((p) => p.id !== id));
   };
