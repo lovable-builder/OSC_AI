@@ -200,9 +200,6 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
     return Math.max(...patchList.map((p) => p.startChannel)) + 1;
   }, [patchList]);
 
-  // Import patch from console — creates generic PatchEntry rows from console data
-  const handleImportPatch = () => {
-    if (!onRequestPatch) return;
   // Helper to build patch entries from console data
   const buildImportedPatch = (data: ConsolePatchEntry[]): PatchEntry[] => {
     const genericFixture: Fixture = {
