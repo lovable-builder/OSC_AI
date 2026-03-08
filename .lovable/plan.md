@@ -1,39 +1,51 @@
 
 
-# Plan: Implement ETC Console AI Main Component
+## Plan: Import Cue List from EOS Console
 
-## What happened
-You pasted a large single-file React component for the ETC Console AI app, but **the code is truncated** — it cuts off mid-render inside the "LIVE STAGE" module at `{channels.filter(c => c.in`. The component cannot be implemented as-is because the JSX is incomplete.
+### What's Possible
 
-## What I can see
-The pasted code contains:
-- **ParticleField** — canvas-based animated background
-- **SpectrumBar** — audio-style visualizer bars
-- **GlowButton** — styled button with glow effects
-- **StepCard** — console instruction step cards
-- **OscCard** — OSC command sender cards
-- **FixtureGrid** — channel color/intensity visualizer
-- **CueStack** — cue list with active highlight
-- **CommandLog** — scrollable OSC command log
-- **Main App** — three modules: AI Guide, OSC Control, Live Stage
+Yes, EOS consoles expose their cue list via OSC. The bridge can request cue data using `/eos/get/cue/1/list/<count>` and related endpoints, and the console replies with cue number, label, duration, etc. We can build a full "Import Cues from Console" feature.
 
-All use inline styles (no Tailwind), and the AI Guide calls the Anthropic API directly from the client (which exposes the API key — should use Lovable AI via edge function instead).
+### Current State
 
-## Issues to resolve before implementing
+- The app has hardcoded demo cues (lines 865-872 in Index.tsx)
+- The bridge already handles `request_patch` and `request_levels` — we need to add `request_cues`
+- The `CueStack` component renders cues but from static state
+- Console feedback handler already processes `active_cue` updates
 
-1. **Incomplete code** — The "LIVE STAGE" module JSX is cut off. I need the rest of the component to implement it fully.
-2. **JSX syntax** — The pasted code has bare `<div>` tags without className/style attributes in many places (likely stripped during copy). This will need reconstruction.
-3. **Direct Anthropic API call** — The `fetchSteps` function calls `api.anthropic.com` directly from the browser, which is insecure and won't work due to CORS. Should be routed through Lovable AI (edge function).
+### Implementation
 
-## Proposed approach (once complete code is provided)
+**1. Bridge: Add `request_cues` handler**
+- When bridge receives `{ type: "request_cues" }`, send OSC queries to the console:
+  - `/eos/get/cue/1/count` — get total cue count
+  - `/eos/get/cue/1/list/0` through `/eos/get/cue/1/list/N` — iterate cue list indices
+  - `/eos/get/cue/1/{index}/label`, `/eos/get/cue/1/{index}/duration` — get details per cue
+- Parse incoming `/out/get/cue/...` OSC replies and broadcast as `{ type: "console_feedback", subtype: "cue_list", cues: [...] }` to the web app
 
-1. **Create `src/pages/Index.tsx`** — Convert the full component into a properly typed TypeScript React component
-2. **Split into sub-components** — Place helpers (ParticleField, GlowButton, StepCard, OscCard, etc.) into `src/components/` files
-3. **Replace Anthropic direct call** — Use Lovable AI gateway via an edge function for the AI Guide module
-4. **Load fonts** — Add Google Fonts link to `index.html` for Space Mono and DM Sans
-5. **Update CSS** — Set dark background in `index.css`
+**2. Bridge: Parse cue list OSC responses**
+- Add detection in `parseConsoleOscMessage` for addresses containing `/out/get/cue/` to extract cue number, label, up time, down time, and follow/hang data
+- Accumulate cue data across multiple OSC replies and batch-broadcast when complete
 
-## Next step
+**3. App: Replace hardcoded cues with live state**
+- Change `const [cues]` from static to `useState` with setter
+- Add handling in `handleBridgeMessage` for `subtype: "cue_list"` to populate cues from console data
+- Each cue object: `{ id, label, time, upTime, downTime, followTime }`
 
-**Please paste the remaining portion of the component** (from the Live Stage module onward through the closing of the App component) so I can implement the complete application.
+**4. App: Add "Import Cues" button**
+- Add a "Sync Cues from Console" button in the Live Stage panel (next to existing Request Patch / Request Levels buttons)
+- Sends `{ type: "request_cues" }` to bridge
+- Shows loading state while waiting for response
+- Also add it to the auto-poll (slow poll, every 15s) so cue list stays current
+
+**5. App: Enhanced Cue List display**
+- Update `CueStack` component to show additional fields: up/down times, follow/hang, cue labels from console
+- Show a badge indicating whether cues are "Live from Console" vs "Demo Data"
+- Highlight active cue using the existing `consoleFeedback.activeCue` state
+
+**6. Bridge: Add cue count to polling**  
+- Include `/eos/get/cue/1/count` in the slow poll cycle alongside patch requests
+
+### Files Changed
+- `bridge.js` / `public/bridge.js` — add `request_cues` handler and cue OSC response parsing
+- `src/pages/Index.tsx` — make cues stateful, add import button, update handleBridgeMessage, update CueStack
 
