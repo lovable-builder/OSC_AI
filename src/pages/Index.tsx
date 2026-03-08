@@ -2370,7 +2370,7 @@ export default function App() {
                           const rect = e.currentTarget.getBoundingClientRect();
                           const newVal = Math.round((1 - (e.clientY - rect.top) / rect.height) * 100);
                           setVal(Math.max(0, Math.min(100, newVal)));
-                          sendOsc(`/eos/sub/${i + 1}`, { a: newVal });
+                          sendOsc(`/eos/sub/${i + 1}/level`, newVal / 100);
                         }}
                       >
                         <div
