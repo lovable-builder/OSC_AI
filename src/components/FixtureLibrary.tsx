@@ -148,7 +148,7 @@ export default function FixtureLibrary({ onPatch }: FixtureLibraryProps) {
   const removePatch = (id: string) => {
     const entry = patchList.find((p) => p.id === id);
     if (entry) {
-      onPatch(`/eos/newcmd/Chan/${entry.startChannel}/Unpatch/Enter`, {});
+      onPatch("/eos/cmd", { a: `Chan ${entry.startChannel} Unpatch#` });
     }
     setPatchList((prev) => prev.filter((p) => p.id !== id));
   };
