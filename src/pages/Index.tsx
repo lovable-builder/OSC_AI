@@ -1887,7 +1887,7 @@ export default function App() {
                     <GlowButton
                       onClick={() => {
                         if (customPath) {
-                          sendOsc(customPath, { a: customVal });
+                          sendOsc(customPath, customVal || undefined);
                           setCustomPath("");
                           setCustomVal("");
                         }
