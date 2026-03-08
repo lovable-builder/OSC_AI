@@ -675,8 +675,12 @@ export default function App() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   // OSC state
-  const [oscHost, setOscHost] = useState("192.168.0.15");
-  const [oscPort, setOscPort] = useState("3033");
+  const [oscHost, setOscHost] = useState(() => localStorage.getItem("eos_osc_host") || "192.168.0.15");
+  const [oscPort, setOscPort] = useState(() => localStorage.getItem("eos_osc_port") || "3033");
+
+  // Persist target values
+  useEffect(() => { localStorage.setItem("eos_osc_host", oscHost); }, [oscHost]);
+  useEffect(() => { localStorage.setItem("eos_osc_port", oscPort); }, [oscPort]);
   const [oscTab, setOscTab] = useState("Channels");
   const [oscLogs, setOscLogs] = useState([]);
   const [customPath, setCustomPath] = useState("");
