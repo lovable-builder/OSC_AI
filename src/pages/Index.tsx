@@ -25,7 +25,7 @@ const OSC_COMMANDS = {
   Cues: [
     { label: "Go", path: "/eos/key/go", params: [], isKey: true },
     { label: "Back", path: "/eos/key/back", params: [], isKey: true },
-    { label: "Fire Cue", path: "/eos/newcmd", value: "Cue {a} Go Enter", params: ["Cue #"] },
+    { label: "Fire Cue", path: "/eos/cue/{a}/fire", params: ["Cue #"], isKey: true },
     { label: "Record", path: "/eos/newcmd", value: "Cue {a} Record Enter", params: ["Cue #"] },
     { label: "Update", path: "/eos/newcmd", value: "Cue {a} Update Enter", params: ["Cue #"] },
     { label: "Delete", path: "/eos/newcmd", value: "Cue {a} Delete Enter Enter", params: ["Cue #"] },
