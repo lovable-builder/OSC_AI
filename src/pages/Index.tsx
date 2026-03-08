@@ -2301,7 +2301,7 @@ export default function App() {
                     const idx = cues.findIndex((c) => c.id === activeCue);
                     if (idx < cues.length - 1) {
                       setActiveCue(cues[idx + 1].id);
-                      sendOsc("/eos/cue/go");
+                      sendOsc("/eos/key/go");
                     }
                   }}
                   active
