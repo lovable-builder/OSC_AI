@@ -190,7 +190,7 @@ function SpectrumBar({ active }) {
 }
 
 // ── GLOW BUTTON ────────────────────────────────────────────────────────────────
-function GlowButton({ children, onClick, color = "#FF6B2B", active, disabled, style = {} }) {
+function GlowButton({ children, onClick, color = "#FF6B2B", active = false, disabled = false, style = {} }: { active?: any; children: any; color?: string; disabled?: any; onClick: any; style?: any }) {
   const [pressed, setPressed] = useState(false);
   return (
     <button
