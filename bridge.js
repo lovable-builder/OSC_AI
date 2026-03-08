@@ -267,13 +267,22 @@ wss.on("connection", (ws, req) => {
         return;
       }
 
-      const { path, value } = msg;
+      const { path, args: rawArgs, value } = msg;
       if (!path) {
         ws.send(JSON.stringify({ error: "Missing OSC path" }));
         return;
       }
 
-      const oscMsg = parseEosCommand(path, value);
+      // New format: app sends { path, args: [{type, value}] }
+      // Legacy format: app sends { path, value }
+      let oscMsg;
+      if (Array.isArray(rawArgs)) {
+        // Direct typed args from app — send as-is with user path
+        oscMsg = { address: withUserPath(path), args: rawArgs };
+      } else {
+        // Legacy: parse path + value
+        oscMsg = parseEosCommand(path, value);
+      }
       udpPort.send(oscMsg, host, port);
 
       console.log(

@@ -259,14 +259,19 @@ wss.on("connection", (ws, req) => {
         return;
       }
 
-      const { path, value } = msg;
+      const { path, args: rawArgs, value } = msg;
       if (!path) {
         console.warn("  ⚠ Invalid message (missing path):", msg);
         ws.send(JSON.stringify({ error: "Missing path" }));
         return;
       }
 
-      const oscMsg = parseEosCommand(path, value);
+      let oscMsg;
+      if (Array.isArray(rawArgs)) {
+        oscMsg = { address: withUserPath(path), args: rawArgs };
+      } else {
+        oscMsg = parseEosCommand(path, value);
+      }
       udpPort.send(oscMsg, host, port);
       console.log(`  → OSC  ${oscMsg.address}  ${oscMsg.args.length ? JSON.stringify(oscMsg.args.map(a => a.value)) : "(no args)"}  → ${host}:${port}`);
 
