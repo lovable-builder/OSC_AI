@@ -109,14 +109,14 @@ function ParticleField() {
     const ctx = canvas.getContext("2d");
     let W = (canvas.width = window.innerWidth);
     let H = (canvas.height = window.innerHeight);
-    const particles = Array.from({ length: 80 }, () => ({
+    const particles = Array.from({ length: 100 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
       r: Math.random() * 1.5 + 0.5,
-      alpha: Math.random() * 0.4 + 0.1,
-      color: Math.random() > 0.7 ? "#FF6B2B" : "#ffffff",
+      alpha: Math.random() * 0.5 + 0.1,
+      color: Math.random() > 0.6 ? "#00ffc8" : Math.random() > 0.5 ? "#FF6B2B" : "#ffffff",
     }));
     let frame;
     const draw = () => {
@@ -140,11 +140,11 @@ function ParticleField() {
       particles.forEach((p, i) => {
         particles.slice(i + 1).forEach((q) => {
           const d = Math.hypot(p.x - q.x, p.y - q.y);
-          if (d < 120) {
+          if (d < 140) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(255,107,43,${0.06 * (1 - d / 120)})`;
+            ctx.strokeStyle = `rgba(0,255,200,${0.06 * (1 - d / 140)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -1312,26 +1312,29 @@ export default function App() {
   // ── RENDER ───────────────────────────────────────────────────────────────────
   return (
     <div
+      className="scanlines cyber-grid"
       style={{
         minHeight: "100vh",
-        background: "#060608",
+        background: "linear-gradient(180deg, #020208 0%, #060610 30%, #0a0812 100%)",
         fontFamily: "'DM Sans', sans-serif",
         color: "#e0e0e0",
         overflow: "hidden auto",
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,255,200,0.2); border-radius: 2px; }
         @keyframes bar-dance { from { transform: scaleY(0.4); } to { transform: scaleY(1.2); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(255,107,43,0.4); } 70% { box-shadow: 0 0 0 10px rgba(255,107,43,0); } 100% { box-shadow: 0 0 0 0 rgba(255,107,43,0); } }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(0,255,200,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,200,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,200,0); } }
         @keyframes shimmer { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
-        .nav-btn { transition: all 0.2s; }
-        .nav-btn:hover { color: #FF6B2B !important; }
+        .nav-btn { transition: all 0.2s; position: relative; overflow: hidden; }
+        .nav-btn:hover { color: #00ffc8 !important; text-shadow: 0 0 12px rgba(0,255,200,0.5); }
+        .nav-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #00ffc8, transparent); opacity: 0; transition: opacity 0.3s; }
+        .nav-btn:hover::after { opacity: 1; }
         .msg-in { animation: fadeUp 0.3s ease forwards; }
       `}</style>
 
@@ -1343,11 +1346,11 @@ export default function App() {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "rgba(6,6,8,0.85)",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255,107,43,0.1)",
+          background: "rgba(2,2,8,0.9)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          borderBottom: "1px solid rgba(0,255,200,0.08)",
           padding: "0 24px",
-          height: "56px",
+          height: "60px",
           display: "flex",
           alignItems: "center",
           gap: "0",
@@ -1357,36 +1360,37 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "32px" }}>
           <div
             style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "8px",
-              background: "linear-gradient(135deg, #FF6B2B 0%, #FF3D00 100%)",
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #FF6B2B 0%, #00ffc8 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 20px rgba(255,107,43,0.4)",
+              boxShadow: "0 0 24px rgba(0,255,200,0.3), 0 0 48px rgba(255,107,43,0.2)",
               fontSize: "18px",
               flexShrink: 0,
+              animation: "hex-rotate 20s linear infinite",
             }}
           >
             ⚡
           </div>
           <div>
             <div
+              className="holo-text"
               style={{
-                fontFamily: "'Space Mono', monospace",
-                fontWeight: "700",
-                fontSize: "13px",
-                color: "#fff",
-                letterSpacing: "0.08em",
+                fontFamily: "'Orbitron', 'Space Mono', monospace",
+                fontWeight: "900",
+                fontSize: "14px",
+                letterSpacing: "0.12em",
               }}
             >
-              EOS<span style={{ color: "#FF6B2B" }}>AI</span>
+              EOS<span>AI</span>
             </div>
             <div
-              style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#444", letterSpacing: "0.15em" }}
+              style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#00ffc866", letterSpacing: "0.2em" }}
             >
-              CONSOLE INTELLIGENCE
+              CONSOLE INTELLIGENCE v2.0
             </div>
           </div>
         </div>
@@ -1402,17 +1406,18 @@ export default function App() {
               className="nav-btn"
               onClick={() => setActiveModule(tab.id)}
               style={{
-                padding: "6px 16px",
-                borderRadius: "6px",
+                padding: "8px 18px",
+                borderRadius: "8px",
                 border: "none",
-                background: activeModule === tab.id ? "rgba(255,107,43,0.15)" : "transparent",
-                color: activeModule === tab.id ? "#FF6B2B" : "#555",
-                fontFamily: "'Space Mono', monospace",
+                background: activeModule === tab.id ? "rgba(0,255,200,0.08)" : "transparent",
+                color: activeModule === tab.id ? "#00ffc8" : "#555",
+                fontFamily: "'Orbitron', 'Space Mono', monospace",
                 fontSize: "10px",
                 fontWeight: "700",
-                letterSpacing: "0.08em",
+                letterSpacing: "0.12em",
                 cursor: "pointer",
-                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(255,107,43,0.3)" : "none",
+                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(0,255,200,0.2), 0 0 16px rgba(0,255,200,0.1)" : "none",
+                textShadow: activeModule === tab.id ? "0 0 8px rgba(0,255,200,0.5)" : "none",
               }}
             >
               <span style={{ marginRight: "6px" }}>{tab.icon}</span>
@@ -2094,9 +2099,10 @@ export default function App() {
 
             {/* ── AI AGENT PROMPT BAR ── */}
             <div
+              className="neon-panel"
               style={{
-                background: "rgba(255,107,43,0.04)",
-                border: "1px solid rgba(255,107,43,0.15)",
+                background: "rgba(0,255,200,0.02)",
+                border: "1px solid rgba(0,255,200,0.12)",
                 borderRadius: "14px",
                 padding: "16px 20px",
                 display: "flex",
@@ -2107,8 +2113,8 @@ export default function App() {
               {/* Header row */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <span style={{ fontSize: "16px" }}>🤖</span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#FF6B2B", letterSpacing: "0.12em", flex: 1 }}>
-                  AI OSC AGENT — Natural Language to Console Commands
+                <span style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "10px", color: "#00ffc8", letterSpacing: "0.12em", flex: 1 }}>
+                  AI OSC AGENT — VOICE & TEXT TO CONSOLE
                 </span>
                 {/* Preview mode toggle */}
                 <div
@@ -2228,11 +2234,7 @@ export default function App() {
                   onChange={(e) => setAiOscInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !aiOscLoading && aiOscInput.trim()) {
-                      if (!aiOscPreviewMode) executeAiOscCommands(aiOscInput);
-                      else {
-                        // Preview mode: just show commands, don't auto-fire
-                        executeAiOscCommands(aiOscInput);
-                      }
+                      executeAiOscCommands(aiOscInput);
                     }
                   }}
                   placeholder='Try: "Set channels 1-5 to full", "Fire cue 3", "Blackout stage"...'
@@ -2240,7 +2242,7 @@ export default function App() {
                   style={{
                     flex: 1,
                     background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,107,43,0.2)",
+                    border: "1px solid rgba(0,255,200,0.15)",
                     borderRadius: "8px",
                     padding: "10px 14px",
                     color: "#e0e0e0",
@@ -2248,8 +2250,8 @@ export default function App() {
                     fontFamily: "'DM Sans', sans-serif",
                     outline: "none",
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.5)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.2)")}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(0,255,200,0.4)")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(0,255,200,0.15)")}
                 />
                 <button
                   onClick={() => { if (!aiOscLoading && aiOscInput.trim()) executeAiOscCommands(aiOscInput); }}
@@ -2260,19 +2262,33 @@ export default function App() {
                     border: "none",
                     background: aiOscLoading || !aiOscInput.trim()
                       ? "rgba(255,255,255,0.04)"
-                      : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
-                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#fff",
-                    fontFamily: "'Space Mono', monospace",
+                      : "linear-gradient(135deg, #FF6B2B, #00ffc8)",
+                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#000",
+                    fontFamily: "'Orbitron', 'Space Mono', monospace",
                     fontSize: "10px",
                     fontWeight: "700",
                     cursor: aiOscLoading || !aiOscInput.trim() ? "not-allowed" : "pointer",
                     letterSpacing: "0.08em",
-                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 16px rgba(255,107,43,0.4)" : "none",
+                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 20px rgba(0,255,200,0.3)" : "none",
                     transition: "all 0.2s",
                   }}
                 >
                   {aiOscLoading ? "..." : aiOscPreviewMode ? "PREVIEW" : "EXECUTE"}
                 </button>
+                {/* Voice OSC Button */}
+                <VoiceAgent
+                  agentId={elevenLabsAgentId}
+                  onTranscript={(text, speaker) => {
+                    if (speaker === "user" && text.trim()) {
+                      // User spoke a command — send to AI OSC agent
+                      executeAiOscCommands(text);
+                    }
+                    if (speaker === "agent") {
+                      // Show agent response in AI OSC history
+                      setAiOscHistory(prev => [...prev, { role: "assistant", text }]);
+                    }
+                  }}
+                />
                 {aiOscHistory.length > 0 && (
                   <button
                     onClick={() => setAiOscHistory([])}
@@ -2483,11 +2499,12 @@ export default function App() {
           textAlign: "center",
           padding: "24px",
           marginTop: "20px",
-          borderTop: "1px solid rgba(255,255,255,0.03)",
+          borderTop: "1px solid rgba(0,255,200,0.05)",
         }}
       >
         <div
-          style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#1e1e1e", letterSpacing: "0.2em" }}
+          className="holo-text"
+          style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "9px", letterSpacing: "0.25em" }}
         >
           EOS AI CONSOLE INTELLIGENCE — BUILT WITH ⚡ FOR THE LIGHTING COMMUNITY
         </div>
