@@ -1026,16 +1026,7 @@ export default function App() {
         ]),
       400,
     );
-    // Animate channels
-    const t = setInterval(() => {
-      setChannels((prev) =>
-        prev.map((ch) => ({
-          ...ch,
-          intensity: ch.intensity > 0 ? Math.max(0, ch.intensity + (Math.random() - 0.5) * 8) : ch.intensity,
-        })),
-      );
-    }, 800);
-    return () => clearInterval(t);
+    return () => {};
   }, []);
 
   useEffect(() => {
