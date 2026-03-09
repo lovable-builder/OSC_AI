@@ -857,15 +857,20 @@ export default function App() {
       setChannels(prev => {
         const updated = [...prev];
         channelUpdates.forEach((ch: any) => {
-          const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
+          const chId = ch.id ?? ch.channel;
+          const idx = updated.findIndex(c => c.id === chId);
+          const entry = {
+            id: chId,
+            intensity: ch.intensity ?? ch.level ?? 0,
+            r: ch.r ?? 255,
+            g: ch.g ?? 180,
+            b: ch.b ?? 80,
+          };
           if (idx !== -1) {
-            updated[idx] = {
-              ...updated[idx],
-              intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
-              r: ch.r ?? updated[idx].r,
-              g: ch.g ?? updated[idx].g,
-              b: ch.b ?? updated[idx].b,
-            };
+            updated[idx] = { ...updated[idx], ...entry };
+          } else {
+            updated.push(entry);
+            updated.sort((a, b) => a.id - b.id);
           }
         });
         return updated;
@@ -1005,25 +1010,13 @@ export default function App() {
   }, [wsConnected, sendBridgeMessage]);
 
   // Live state
-  const [channels, setChannels] = useState(() =>
-    Array.from({ length: 32 }, (_, i) => ({
-      id: i + 1,
-      intensity: Math.random() > 0.6 ? Math.floor(Math.random() * 100) : 0,
-      r: 255,
-      g: 140 + Math.random() * 80,
-      b: 40 + Math.random() * 60,
-    })),
-  );
+  const [channels, setChannels] = useState<Array<{ id: number; intensity: number; r: number; g: number; b: number }>>([]);
   const [cues, setCues] = useState<Array<{ id: string; label: string; time: string; upTime: string | null; downTime: string | null }>>([]);
   const [cuesLive, setCuesLive] = useState(false);
   const [activeCue, setActiveCue] = useState(null);
   const [specActive, setSpecActive] = useState(false);
-  const [faderVals, setFaderVals] = useState(() => [
-    Math.floor(Math.random() * 80 + 10), Math.floor(Math.random() * 80 + 10),
-    Math.floor(Math.random() * 80 + 10), Math.floor(Math.random() * 80 + 10),
-    Math.floor(Math.random() * 80 + 10), Math.floor(Math.random() * 80 + 10),
-    Math.floor(Math.random() * 80 + 10), 100,
-  ]);
+  const [faderVals, setFaderVals] = useState<number[]>([]);
+  const [faderLabels, setFaderLabels] = useState<string[]>([]);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 100);
@@ -1038,16 +1031,7 @@ export default function App() {
         ]),
       400,
     );
-    // Animate channels
-    const t = setInterval(() => {
-      setChannels((prev) =>
-        prev.map((ch) => ({
-          ...ch,
-          intensity: ch.intensity > 0 ? Math.max(0, ch.intensity + (Math.random() - 0.5) * 8) : ch.intensity,
-        })),
-      );
-    }, 800);
-    return () => clearInterval(t);
+    return () => {};
   }, []);
 
   useEffect(() => {
@@ -2637,7 +2621,7 @@ export default function App() {
                     flex: 1,
                   }}
                 >
-                  CHANNEL OVERVIEW — 32 CHANNELS
+                  CHANNEL OVERVIEW — {channels.length} CHANNELS
                 </span>
                 <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#444" }}>
                   {channels.filter((c) => c.intensity > 0).length} ACTIVE
@@ -2655,29 +2639,18 @@ export default function App() {
                 }}
               >
                 <GlowButton
-                  onClick={() => setChannels((prev) => prev.map((c) => ({ ...c, intensity: 100 })))}
+                  onClick={() => sendOsc("/eos/newcmd", "Chan 1 Thru 9999 Full Enter")}
                   active
                   style={{ flex: 1 }}
                 >
                   FULL STAGE
                 </GlowButton>
                 <GlowButton
-                  onClick={() => setChannels((prev) => prev.map((c) => ({ ...c, intensity: 0 })))}
+                  onClick={() => sendOsc("/eos/newcmd", "Chan 1 Thru 9999 Out Enter")}
                   color="#ef4444"
                   style={{ flex: 1 }}
                 >
                   BLACKOUT
-                </GlowButton>
-                <GlowButton
-                  onClick={() =>
-                    setChannels((prev) =>
-                      prev.map((c) => ({ ...c, intensity: Math.random() > 0.4 ? Math.floor(Math.random() * 100) : 0 })),
-                    )
-                  }
-                  color="#8b5cf6"
-                  style={{ flex: 1 }}
-                >
-                  RANDOM
                 </GlowButton>
               </div>
             </div>
@@ -2732,8 +2705,7 @@ export default function App() {
                   activeCue={activeCue}
                   isLive={cuesLive}
                   onGo={(cue) => {
-                    setActiveCue(cue.id);
-                    sendOsc(`/eos/cue/${cue.id}/fire`);
+                    sendOsc("/eos/newcmd", `Cue ${cue.id} Go Enter`);
                   }}
                 />
               </div>
@@ -2746,31 +2718,14 @@ export default function App() {
                 }}
               >
                 <GlowButton
-                  onClick={() => {
-                    const idx = cues.findIndex((c) => c.id === activeCue);
-                    if (idx < cues.length - 1) {
-                      const nextCue = cues[idx + 1];
-                      setActiveCue(nextCue.id);
-                      sendOsc(`/eos/cue/${nextCue.id}/fire`);
-                    } else if (cues.length > 0 && activeCue === null) {
-                      setActiveCue(cues[0].id);
-                      sendOsc(`/eos/cue/${cues[0].id}/fire`);
-                    }
-                  }}
+                  onClick={() => sendOsc("/eos/key/go")}
                   active
                   style={{ flex: 1 }}
                 >
                   ▶ GO
                 </GlowButton>
                 <GlowButton
-                  onClick={() => {
-                    const idx = cues.findIndex((c) => c.id === activeCue);
-                    if (idx > 0) {
-                      const prevCue = cues[idx - 1];
-                      setActiveCue(prevCue.id);
-                      sendOsc(`/eos/cue/${prevCue.id}/fire`);
-                    }
-                  }}
+                  onClick={() => sendOsc("/eos/key/back")}
                   color="#3b82f6"
                   style={{ flex: 1 }}
                 >
@@ -2801,12 +2756,18 @@ export default function App() {
                 SUBMASTER FADERS
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "12px" }}>
-                {["Wash", "Spot", "Fill", "Back", "Effects", "Practicals", "Haze", "Master"].map((label, i) => {
-                  const val = faderVals[i];
+                {faderVals.length === 0 ? (
+                  <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "20px" }}>
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#444" }}>
+                      NO SUBMASTERS — connect to console to populate
+                    </span>
+                  </div>
+                ) : faderVals.map((val, i) => {
+                  const label = faderLabels[i] || `SUB ${i + 1}`;
                   const setVal = (newVal: number) => setFaderVals(prev => prev.map((v, j) => j === i ? newVal : v));
                   return (
                     <div
-                      key={label}
+                      key={i}
                       style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
                     >
                       <div
@@ -2834,10 +2795,7 @@ export default function App() {
                             left: 0,
                             right: 0,
                             height: `${val}%`,
-                            background:
-                              i === 7
-                                ? "linear-gradient(to top, #FF6B2B, #FF3D00)"
-                                : `linear-gradient(to top, hsl(${20 + i * 15}, 80%, 50%), hsl(${30 + i * 15}, 90%, 60%))`,
+                            background: `linear-gradient(to top, hsl(${20 + i * 15}, 80%, 50%), hsl(${30 + i * 15}, 90%, 60%))`,
                             transition: "height 0.1s",
                             boxShadow: val > 0 ? `0 0 10px rgba(255,107,43,0.3)` : "none",
                           }}
