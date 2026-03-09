@@ -109,14 +109,14 @@ function ParticleField() {
     const ctx = canvas.getContext("2d");
     let W = (canvas.width = window.innerWidth);
     let H = (canvas.height = window.innerHeight);
-    const particles = Array.from({ length: 80 }, () => ({
+    const particles = Array.from({ length: 100 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
       r: Math.random() * 1.5 + 0.5,
-      alpha: Math.random() * 0.4 + 0.1,
-      color: Math.random() > 0.7 ? "#FF6B2B" : "#ffffff",
+      alpha: Math.random() * 0.5 + 0.1,
+      color: Math.random() > 0.6 ? "#00ffc8" : Math.random() > 0.5 ? "#FF6B2B" : "#ffffff",
     }));
     let frame;
     const draw = () => {
