@@ -753,9 +753,11 @@ export default function App() {
     let feedbackUpdate: Record<string, any> = {};
     let newActiveCue: string | null = null;
     let channelUpdates: any[] = [];
-    let patchData: any[] | null = null;
+    let patchUpdates: any[] = [];
+    let patchSnapshot: any[] | null = null;
     let cueUpdates: any[] = [];
     let cuePropertyUpdates: any[] = [];
+    let subUpdates: any[] = [];
     let commandLineText: string | null = null;
     let cuesLiveFlag = false;
 
