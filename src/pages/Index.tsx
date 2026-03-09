@@ -966,7 +966,7 @@ export default function App() {
     };
   }, [BRIDGE_URL, handleBridgeMessage]);
 
-  // Polling fallback: continuously request console state while connected
+  // Polling: ping + levels only. Patch is manual or on-connect only.
   useEffect(() => {
     if (!wsConnected) return;
 
@@ -974,16 +974,17 @@ export default function App() {
     sendBridgeMessage({ type: "ping" });
     sendBridgeMessage({ type: "request_levels" });
     sendBridgeMessage({ type: "request_patch" });
+    sendBridgeMessage({ type: "request_cues" });
 
     const fastPoll = setInterval(() => {
       sendBridgeMessage({ type: "ping" });
       sendBridgeMessage({ type: "request_levels" });
     }, 3000);
 
+    // Cues only, no more automatic patch polling
     const slowPoll = setInterval(() => {
-      sendBridgeMessage({ type: "request_patch" });
       sendBridgeMessage({ type: "request_cues" });
-    }, 15000);
+    }, 30000);
 
     return () => {
       clearInterval(fastPoll);
