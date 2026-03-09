@@ -1281,17 +1281,13 @@ export default function App() {
     const txt = input.trim();
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text: txt }]);
-    if (!selectedConsole) {
-      setPendingPrompt(txt);
-      setShowConsoleSelect(true);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Which console are you on?", type: "console-select" },
-      ]);
-      return;
-    }
-    setMessages((prev) => [...prev, { role: "assistant", text: "Generating guide...", type: "loading" }]);
-    await fetchSteps(txt, selectedConsole.name);
+    // Always ask which console before generating a guide
+    setPendingPrompt(txt);
+    setShowConsoleSelect(true);
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", text: "Which console are you working with?", type: "console-select" },
+    ]);
   };
 
   const handleConsoleSelect = async (con) => {
