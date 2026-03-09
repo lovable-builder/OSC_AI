@@ -1,5 +1,6 @@
 // Update this page (the content is just a fallback if you fail to update the page)
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 
 import ConsoleSteps3D from "@/components/ConsoleSteps3D";
 import VoiceAgent from "@/components/VoiceAgent";
