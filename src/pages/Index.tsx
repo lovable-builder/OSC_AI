@@ -2233,11 +2233,7 @@ export default function App() {
                   onChange={(e) => setAiOscInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !aiOscLoading && aiOscInput.trim()) {
-                      if (!aiOscPreviewMode) executeAiOscCommands(aiOscInput);
-                      else {
-                        // Preview mode: just show commands, don't auto-fire
-                        executeAiOscCommands(aiOscInput);
-                      }
+                      executeAiOscCommands(aiOscInput);
                     }
                   }}
                   placeholder='Try: "Set channels 1-5 to full", "Fire cue 3", "Blackout stage"...'
@@ -2245,7 +2241,7 @@ export default function App() {
                   style={{
                     flex: 1,
                     background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,107,43,0.2)",
+                    border: "1px solid rgba(0,255,200,0.15)",
                     borderRadius: "8px",
                     padding: "10px 14px",
                     color: "#e0e0e0",
@@ -2253,8 +2249,8 @@ export default function App() {
                     fontFamily: "'DM Sans', sans-serif",
                     outline: "none",
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.5)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.2)")}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(0,255,200,0.4)")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(0,255,200,0.15)")}
                 />
                 <button
                   onClick={() => { if (!aiOscLoading && aiOscInput.trim()) executeAiOscCommands(aiOscInput); }}
@@ -2265,19 +2261,33 @@ export default function App() {
                     border: "none",
                     background: aiOscLoading || !aiOscInput.trim()
                       ? "rgba(255,255,255,0.04)"
-                      : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
-                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#fff",
-                    fontFamily: "'Space Mono', monospace",
+                      : "linear-gradient(135deg, #FF6B2B, #00ffc8)",
+                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#000",
+                    fontFamily: "'Orbitron', 'Space Mono', monospace",
                     fontSize: "10px",
                     fontWeight: "700",
                     cursor: aiOscLoading || !aiOscInput.trim() ? "not-allowed" : "pointer",
                     letterSpacing: "0.08em",
-                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 16px rgba(255,107,43,0.4)" : "none",
+                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 20px rgba(0,255,200,0.3)" : "none",
                     transition: "all 0.2s",
                   }}
                 >
                   {aiOscLoading ? "..." : aiOscPreviewMode ? "PREVIEW" : "EXECUTE"}
                 </button>
+                {/* Voice OSC Button */}
+                <VoiceAgent
+                  agentId={elevenLabsAgentId}
+                  onTranscript={(text, speaker) => {
+                    if (speaker === "user" && text.trim()) {
+                      // User spoke a command — send to AI OSC agent
+                      executeAiOscCommands(text);
+                    }
+                    if (speaker === "agent") {
+                      // Show agent response in AI OSC history
+                      setAiOscHistory(prev => [...prev, { role: "assistant", text }]);
+                    }
+                  }}
+                />
                 {aiOscHistory.length > 0 && (
                   <button
                     onClick={() => setAiOscHistory([])}
