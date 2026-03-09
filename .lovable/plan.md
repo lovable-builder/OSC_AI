@@ -1,39 +1,24 @@
 
 
-# Plan: Implement ETC Console AI Main Component
+## Why the cue labels are wrong
 
-## What happened
-You pasted a large single-file React component for the ETC Console AI app, but **the code is truncated** — it cuts off mid-render inside the "LIVE STAGE" module at `{channels.filter(c => c.in`. The component cannot be implemented as-is because the JSX is incomplete.
+The app initializes the cue list with **hardcoded placeholder data** (lines 1005-1012 in Index.tsx):
 
-## What I can see
-The pasted code contains:
-- **ParticleField** — canvas-based animated background
-- **SpectrumBar** — audio-style visualizer bars
-- **GlowButton** — styled button with glow effects
-- **StepCard** — console instruction step cards
-- **OscCard** — OSC command sender cards
-- **FixtureGrid** — channel color/intensity visualizer
-- **CueStack** — cue list with active highlight
-- **CommandLog** — scrollable OSC command log
-- **Main App** — three modules: AI Guide, OSC Control, Live Stage
+```
+"Opening — Warm Wash", "Scene 2 — Spot DS", "Transition — Fade to Blue", etc.
+```
 
-All use inline styles (no Tailwind), and the AI Guide calls the Anthropic API directly from the client (which exposes the API key — should use Lovable AI via edge function instead).
+When the real console sends cue data, it updates entries that match by cue number — but any cue whose label hasn't arrived yet (or whose `cue_property` label message was dropped/batched away) keeps the fake placeholder label. This creates the mismatch you're seeing between the app and the actual EOS console.
 
-## Issues to resolve before implementing
+## Fix
 
-1. **Incomplete code** — The "LIVE STAGE" module JSX is cut off. I need the rest of the component to implement it fully.
-2. **JSX syntax** — The pasted code has bare `<div>` tags without className/style attributes in many places (likely stripped during copy). This will need reconstruction.
-3. **Direct Anthropic API call** — The `fetchSteps` function calls `api.anthropic.com` directly from the browser, which is insecure and won't work due to CORS. Should be routed through Lovable AI (edge function).
+**Start with an empty cue list** and populate it entirely from console data:
 
-## Proposed approach (once complete code is provided)
+### Index.tsx (line 1005-1012)
+Replace the hardcoded cues array with an empty array:
+```typescript
+const [cues, setCues] = useState([]);
+```
 
-1. **Create `src/pages/Index.tsx`** — Convert the full component into a properly typed TypeScript React component
-2. **Split into sub-components** — Place helpers (ParticleField, GlowButton, StepCard, OscCard, etc.) into `src/components/` files
-3. **Replace Anthropic direct call** — Use Lovable AI gateway via an edge function for the AI Guide module
-4. **Load fonts** — Add Google Fonts link to `index.html` for Space Mono and DM Sans
-5. **Update CSS** — Set dark background in `index.css`
-
-## Next step
-
-**Please paste the remaining portion of the component** (from the Live Stage module onward through the closing of the App component) so I can implement the complete application.
+This way the cue stack only shows what the console actually reports — no fake labels, no mismatches. The cue list will populate once the bridge receives cue data from EOS.
 
