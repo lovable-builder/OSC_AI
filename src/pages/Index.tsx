@@ -1010,12 +1010,8 @@ export default function App() {
   const [cuesLive, setCuesLive] = useState(false);
   const [activeCue, setActiveCue] = useState(null);
   const [specActive, setSpecActive] = useState(false);
-  const [faderVals, setFaderVals] = useState(() => [
-    Math.floor(Math.random() * 80 + 10), Math.floor(Math.random() * 80 + 10),
-    Math.floor(Math.random() * 80 + 10), Math.floor(Math.random() * 80 + 10),
-    Math.floor(Math.random() * 80 + 10), Math.floor(Math.random() * 80 + 10),
-    Math.floor(Math.random() * 80 + 10), 100,
-  ]);
+  const [faderVals, setFaderVals] = useState<number[]>([]);
+  const [faderLabels, setFaderLabels] = useState<string[]>([]);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 100);
