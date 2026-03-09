@@ -1100,17 +1100,17 @@ export default function App() {
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 100);
-    // Boot message
-    setTimeout(
-      () =>
-        setMessages([
-          {
-            role: "assistant",
-            text: "ETC Console AI online. I know every button, every workflow, every shortcut across the Eos family. What do you need to do?",
-          },
-        ]),
-      400,
-    );
+    // Boot message — always show console select on start
+    setTimeout(() => {
+      setMessages([
+        {
+          role: "assistant",
+          text: "ETC Console AI online. Which console do you need help with?",
+          type: "console-select",
+        },
+      ]);
+      setShowConsoleSelect(true);
+    }, 400);
     return () => {};
   }, []);
 
