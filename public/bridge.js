@@ -128,6 +128,27 @@ function normalizeArgs(args) {
   return args.map((a) => (a && typeof a === "object" && "value" in a ? a.value : a));
 }
 
+// ── PATCH ACCUMULATOR (batch instead of per-entry broadcast) ─────────────────
+const patchAccum = { entries: [], timer: null, FLUSH_MS: 500 };
+function flushPatch() {
+  if (patchAccum.entries.length === 0) return;
+  const payload = {
+    type: "console_feedback",
+    subtype: "patch_complete",
+    patch: patchAccum.entries.slice(),
+    count: patchAccum.entries.length,
+  };
+  broadcast(payload);
+  logIn(`Patch batch: ${patchAccum.entries.length} entries`);
+  patchAccum.entries = [];
+  patchAccum.timer = null;
+}
+function accumulatePatch(entry) {
+  patchAccum.entries.push(entry);
+  if (patchAccum.timer) clearTimeout(patchAccum.timer);
+  patchAccum.timer = setTimeout(flushPatch, patchAccum.FLUSH_MS);
+}
+
 // ── UDP PORT ──────────────────────────────────────────────────────────────────
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
@@ -450,7 +471,9 @@ function parseIncoming(oscMsg, rinfo) {
       raw_address: dmxAbs,
     };
     if (entry.channel !== null) state.patch[entry.channel] = entry;
-    return { type: "console_feedback", subtype: "patch_entry", ...entry, osc_address: addr, args };
+    // Accumulate patch entries — send as single batch, not per-entry
+    accumulatePatch(entry);
+    return null; // Don't broadcast individually
   }
 
   // GROUP COUNT
@@ -527,8 +550,13 @@ function parseIncoming(oscMsg, rinfo) {
 udpPort.on("message", (oscMsg, rinfo) => {
   try {
     const parsed = parseIncoming(oscMsg, rinfo);
-    broadcast(parsed);
-    logRX(oscMsg.address, JSON.stringify(normalizeArgs(oscMsg.args)));
+    if (parsed) {
+      broadcast(parsed);
+    }
+    // Only log non-patch traffic to reduce noise
+    if (!oscMsg.address?.includes("/patch/")) {
+      logRX(oscMsg.address, JSON.stringify(normalizeArgs(oscMsg.args)));
+    }
   } catch (err) {
     logEr(`RX parse: ${err.message}`);
   }
@@ -914,6 +942,7 @@ httpServer.listen(HTTP_PORT, () => {
 
 // ── BROADCAST ─────────────────────────────────────────────────────────────────
 function broadcast(payload) {
+  if (!payload) return;
   const json = JSON.stringify(payload);
   clients.forEach((ws) => {
     try {
