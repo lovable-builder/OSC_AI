@@ -224,3 +224,115 @@ All colors MUST be HSL.
   border: 1px solid #333;
   margin: 1rem 0;
 }
+
+/* ── Futuristic Effects ────────────────────────────────────────── */
+
+/* Scanline overlay */
+.scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* Holographic shimmer */
+@keyframes holo-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.holo-text {
+  background: linear-gradient(
+    90deg,
+    hsl(20, 90%, 55%),
+    hsl(180, 90%, 55%),
+    hsl(280, 90%, 65%),
+    hsl(20, 90%, 55%)
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: holo-shift 6s ease-in-out infinite;
+}
+
+/* Neon border glow */
+@keyframes neon-border-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 255, 200, 0.15), inset 0 0 8px rgba(0, 255, 200, 0.05); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 200, 0.25), inset 0 0 16px rgba(0, 255, 200, 0.08); }
+}
+
+.neon-panel {
+  border: 1px solid rgba(0, 255, 200, 0.15) !important;
+  animation: neon-border-pulse 4s ease-in-out infinite;
+}
+
+/* Grid background */
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(0, 255, 200, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 200, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Data stream animation */
+@keyframes data-flow {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Glitch effect */
+@keyframes glitch-1 {
+  0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+  20% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, 1px); }
+  40% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -1px); }
+  60% { clip-path: inset(40% 0 40% 0); transform: translate(-1px, 2px); }
+  80% { clip-path: inset(80% 0 5% 0); transform: translate(1px, -2px); }
+}
+
+/* Pulse glow for voice button */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 255, 200, 0.4); }
+  50% { box-shadow: 0 0 24px rgba(0, 255, 200, 0.7), 0 0 48px rgba(0, 255, 200, 0.3); }
+}
+
+/* Hexagonal clip for status indicators */
+@keyframes hex-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Typing cursor */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '▊';
+  animation: blink-cursor 1s step-end infinite;
+  color: hsl(20, 90%, 55%);
+  font-size: 14px;
+}
+
+/* Voice waveform */
+@keyframes voice-wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.voice-wave-bar {
+  animation: voice-wave 0.6s ease-in-out infinite;
+}
