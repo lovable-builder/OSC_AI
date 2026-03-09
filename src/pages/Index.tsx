@@ -788,8 +788,7 @@ export default function App() {
           if (data.subtype === "patch" || data.subtype === "patch_complete") {
             const pd = Array.isArray(data.patch) ? data.patch : [];
             if (pd.length > 0) {
-              if (data.subtype === "patch_complete") patchSnapshot = pd;
-              else patchUpdates.push(...pd);
+              patchUpdates.push(...pd);
             }
           }
 
