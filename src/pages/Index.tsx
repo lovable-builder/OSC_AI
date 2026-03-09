@@ -1406,17 +1406,18 @@ export default function App() {
               className="nav-btn"
               onClick={() => setActiveModule(tab.id)}
               style={{
-                padding: "6px 16px",
-                borderRadius: "6px",
+                padding: "8px 18px",
+                borderRadius: "8px",
                 border: "none",
-                background: activeModule === tab.id ? "rgba(255,107,43,0.15)" : "transparent",
-                color: activeModule === tab.id ? "#FF6B2B" : "#555",
-                fontFamily: "'Space Mono', monospace",
+                background: activeModule === tab.id ? "rgba(0,255,200,0.08)" : "transparent",
+                color: activeModule === tab.id ? "#00ffc8" : "#555",
+                fontFamily: "'Orbitron', 'Space Mono', monospace",
                 fontSize: "10px",
                 fontWeight: "700",
-                letterSpacing: "0.08em",
+                letterSpacing: "0.12em",
                 cursor: "pointer",
-                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(255,107,43,0.3)" : "none",
+                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(0,255,200,0.2), 0 0 16px rgba(0,255,200,0.1)" : "none",
+                textShadow: activeModule === tab.id ? "0 0 8px rgba(0,255,200,0.5)" : "none",
               }}
             >
               <span style={{ marginRight: "6px" }}>{tab.icon}</span>
