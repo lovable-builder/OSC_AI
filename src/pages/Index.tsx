@@ -857,15 +857,20 @@ export default function App() {
       setChannels(prev => {
         const updated = [...prev];
         channelUpdates.forEach((ch: any) => {
-          const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
+          const chId = ch.id ?? ch.channel;
+          const idx = updated.findIndex(c => c.id === chId);
+          const entry = {
+            id: chId,
+            intensity: ch.intensity ?? ch.level ?? 0,
+            r: ch.r ?? 255,
+            g: ch.g ?? 180,
+            b: ch.b ?? 80,
+          };
           if (idx !== -1) {
-            updated[idx] = {
-              ...updated[idx],
-              intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
-              r: ch.r ?? updated[idx].r,
-              g: ch.g ?? updated[idx].g,
-              b: ch.b ?? updated[idx].b,
-            };
+            updated[idx] = { ...updated[idx], ...entry };
+          } else {
+            updated.push(entry);
+            updated.sort((a, b) => a.id - b.id);
           }
         });
         return updated;
