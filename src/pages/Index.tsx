@@ -876,9 +876,9 @@ export default function App() {
       setConsolePatch(patchData.map((p: any) => ({
         channel: p.channel ?? p.chan,
         universe: p.universe ?? p.uni ?? 1,
-        address: p.address ?? p.addr ?? p.dmx,
-        fixture: p.fixture ?? p.type ?? "",
-        label: p.label ?? "",
+        address: p.dmxAddress ?? p.address ?? p.addr ?? p.dmx,
+        fixture: p.fixture_type ?? p.fixture ?? p.type ?? "",
+        label: p.notes ?? p.label ?? "",
       })));
     }
 
