@@ -942,6 +942,7 @@ httpServer.listen(HTTP_PORT, () => {
 
 // ── BROADCAST ─────────────────────────────────────────────────────────────────
 function broadcast(payload) {
+  if (!payload) return;
   const json = JSON.stringify(payload);
   clients.forEach((ws) => {
     try {
