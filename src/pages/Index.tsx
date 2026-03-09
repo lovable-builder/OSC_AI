@@ -985,14 +985,25 @@ export default function App() {
       setCues(prev => {
         let newCues = [...prev];
         for (const data of cuePropertyUpdates) {
+          const cueId = String(data.cue_number ?? data.cue ?? "").trim();
+          if (!cueId) continue;
+
+          const existingIndex = newCues.findIndex(c => c.id === cueId);
+          if (existingIndex === -1) {
+            newCues.push({ id: cueId, label: "", time: "0", upTime: null, downTime: null });
+          }
+
           newCues = newCues.map(c => {
-            if (c.id !== data.cue_number) return c;
+            if (c.id !== cueId) return c;
             if (data.property === "label") return { ...c, label: String(data.value || "") };
-            if (data.property === "duration" || data.property === "up") return { ...c, time: String(data.value ?? c.time), upTime: data.value };
+            if (data.property === "duration" || data.property === "up") {
+              return { ...c, time: String(data.value ?? c.time), upTime: data.value };
+            }
             if (data.property === "down") return { ...c, downTime: data.value };
             return c;
           });
         }
+        newCues.sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
         return newCues;
       });
     }
