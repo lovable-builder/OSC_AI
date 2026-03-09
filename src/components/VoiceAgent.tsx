@@ -1,5 +1,5 @@
 import { useConversation } from "@elevenlabs/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceAgentProps {
@@ -7,21 +7,55 @@ interface VoiceAgentProps {
   onTranscript?: (text: string, speaker: "user" | "agent") => void;
 }
 
+/**
+ * Formats raw agent text into organized markdown instructions.
+ * Splits on sentence boundaries and groups into numbered steps.
+ */
+function formatAsInstructions(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+
+  // Split into sentences
+  const sentences = trimmed
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (sentences.length <= 2) {
+    // Short response — just return as-is with bold emphasis on key terms
+    return trimmed;
+  }
+
+  // Build numbered steps
+  const lines = sentences.map((s, i) => `${i + 1}. ${s}`);
+  return `**Instructions:**\n\n${lines.join("\n")}`;
+}
+
 export default function VoiceAgent({ agentId, onTranscript }: VoiceAgentProps) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const agentBuffer = useRef<string>("");
+  const wasSpeakingRef = useRef(false);
 
   const conversation = useConversation({
     onConnect: () => {
       setError(null);
+      agentBuffer.current = "";
     },
-    onDisconnect: () => {},
+    onDisconnect: () => {
+      // Flush any remaining buffered agent text
+      if (agentBuffer.current.trim() && onTranscript) {
+        onTranscript(formatAsInstructions(agentBuffer.current), "agent");
+        agentBuffer.current = "";
+      }
+    },
     onMessage: (message: any) => {
       if (message.type === "user_transcript" && onTranscript) {
         onTranscript(message.user_transcription_event?.user_transcript || "", "user");
       }
-      if (message.type === "agent_response" && onTranscript) {
-        onTranscript(message.agent_response_event?.agent_response || "", "agent");
+      if (message.type === "agent_response") {
+        const text = message.agent_response_event?.agent_response || "";
+        agentBuffer.current += (agentBuffer.current ? " " : "") + text;
       }
     },
     onError: (err: any) => {
@@ -30,6 +64,20 @@ export default function VoiceAgent({ agentId, onTranscript }: VoiceAgentProps) {
     },
   });
 
+  // Poll isSpeaking to detect when agent stops speaking → flush buffer as formatted instructions
+  const checkSpeaking = useCallback(() => {
+    if (wasSpeakingRef.current && !conversation.isSpeaking && agentBuffer.current.trim()) {
+      if (onTranscript) {
+        onTranscript(formatAsInstructions(agentBuffer.current), "agent");
+      }
+      agentBuffer.current = "";
+    }
+    wasSpeakingRef.current = conversation.isSpeaking;
+  }, [conversation.isSpeaking, onTranscript]);
+
+  // Run the check on every render (isSpeaking changes trigger re-render)
+  checkSpeaking();
+
   const startConversation = useCallback(async () => {
     if (!agentId) {
       setError("No Agent ID configured");
@@ -37,6 +85,7 @@ export default function VoiceAgent({ agentId, onTranscript }: VoiceAgentProps) {
     }
     setIsConnecting(true);
     setError(null);
+    agentBuffer.current = "";
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
