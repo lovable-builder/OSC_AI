@@ -2718,31 +2718,14 @@ export default function App() {
                 }}
               >
                 <GlowButton
-                  onClick={() => {
-                    const idx = cues.findIndex((c) => c.id === activeCue);
-                    if (idx < cues.length - 1) {
-                      const nextCue = cues[idx + 1];
-                      setActiveCue(nextCue.id);
-                      sendOsc(`/eos/cue/${nextCue.id}/fire`);
-                    } else if (cues.length > 0 && activeCue === null) {
-                      setActiveCue(cues[0].id);
-                      sendOsc(`/eos/cue/${cues[0].id}/fire`);
-                    }
-                  }}
+                  onClick={() => sendOsc("/eos/key/go")}
                   active
                   style={{ flex: 1 }}
                 >
                   ▶ GO
                 </GlowButton>
                 <GlowButton
-                  onClick={() => {
-                    const idx = cues.findIndex((c) => c.id === activeCue);
-                    if (idx > 0) {
-                      const prevCue = cues[idx - 1];
-                      setActiveCue(prevCue.id);
-                      sendOsc(`/eos/cue/${prevCue.id}/fire`);
-                    }
-                  }}
+                  onClick={() => sendOsc("/eos/key/back")}
                   color="#3b82f6"
                   style={{ flex: 1 }}
                 >
