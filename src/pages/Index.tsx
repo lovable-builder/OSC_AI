@@ -754,7 +754,6 @@ export default function App() {
     let newActiveCue: string | null = null;
     let channelUpdates: any[] = [];
     let patchUpdates: any[] = [];
-    let patchSnapshot: any[] | null = null;
     let cueUpdates: any[] = [];
     let cuePropertyUpdates: any[] = [];
     let subUpdates: any[] = [];
