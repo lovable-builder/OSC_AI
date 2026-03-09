@@ -140,11 +140,11 @@ function ParticleField() {
       particles.forEach((p, i) => {
         particles.slice(i + 1).forEach((q) => {
           const d = Math.hypot(p.x - q.x, p.y - q.y);
-          if (d < 120) {
+          if (d < 140) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(255,107,43,${0.06 * (1 - d / 120)})`;
+            ctx.strokeStyle = `rgba(0,255,200,${0.06 * (1 - d / 140)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
