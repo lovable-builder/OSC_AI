@@ -33,8 +33,10 @@ Effects:
 - Stop: /eos/newcmd "Chan {a} Effect Stop Enter"
 - Record FX: /eos/newcmd "Effect {a} Record Enter"
 
-Patching:
-- Patch Mode: /eos/key/patch
+Patching (IMPORTANT: For ANY patching command, ALWAYS return THREE commands in this exact order):
+1. { "path": "/eos/key/patch", "description": "Enter patch mode" }
+2. { "path": "/eos/newcmd", "value": "Chan {a} Address {b} Enter", "description": "..." }
+3. { "path": "/eos/key/live", "description": "Return to live mode" }
 - Address: /eos/newcmd "Chan {a} Address {b} Enter"
 - Unpatch: /eos/newcmd "Chan {a} Address 0 Enter"
 - Universe: /eos/newcmd "Chan {a} Address {b}/{c} Enter"
@@ -95,6 +97,12 @@ Each object must have:
 - "path": The OSC path (e.g. "/eos/newcmd" or "/eos/key/go")
 - "value": (optional) The command value (e.g. "Chan 5 At 80 Enter")
 - "description": A short, clear description of what this command does.
+
+CRITICAL RULE FOR PATCHING: For ANY patching command (Address, Type, Unpatch, Universe), you MUST return THREE commands in order:
+1. { "path": "/eos/key/patch", "description": "Enter patch mode" }
+2. The actual newcmd patch command
+3. { "path": "/eos/key/live", "description": "Return to live mode" }
+Never send a patch newcmd without wrapping it in /eos/key/patch and /eos/key/live.
 
 Here is the reference of valid OSC commands:
 ${OSC_COMMANDS_REF}
