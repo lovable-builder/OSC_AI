@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import ConsoleSteps3D from "@/components/ConsoleSteps3D";
+import VoiceAgent from "@/components/VoiceAgent";
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const CONSOLES = [
