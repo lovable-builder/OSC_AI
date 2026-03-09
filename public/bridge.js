@@ -451,10 +451,12 @@ function parseIncoming(oscMsg, rinfo) {
   }
 
   // PATCH ENTRY
-  if (addr.match(/\/out\/get\/patch\/\d+\/\d+/)) {
+  const patchEntryMatch = addr.match(/\/out\/get\/patch\/(\d+)\/(\d+)/);
+  if (patchEntryMatch) {
     const numA = args.filter((a) => typeof a === "number"),
       strA = args.filter((a) => typeof a === "string");
-    const channel = numA[0] ?? null,
+    // Use first numeric arg as channel, fallback to index from address path
+    const channel = numA[0] ?? (args.length === 0 ? null : null),
       dmxAbs = numA[1] ?? null;
     let universe = null,
       dmxAddress = null;
