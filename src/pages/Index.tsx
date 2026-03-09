@@ -1425,19 +1425,21 @@ export default function App() {
 
         {/* Status */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <SpectrumBar active={specActive} />
           {/* WebSocket Bridge Status */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              padding: "4px 12px",
+              padding: "4px 14px",
               borderRadius: "20px",
-              background: wsConnected ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-              border: `1px solid ${wsConnected ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.2)"}`,
+              background: wsConnected ? "rgba(0,255,200,0.08)" : "rgba(239,68,68,0.1)",
+              border: `1px solid ${wsConnected ? "rgba(0,255,200,0.3)" : "rgba(239,68,68,0.2)"}`,
               cursor: "pointer",
-              transition: "all 0.2s",
+              transition: "all 0.4s ease",
+              boxShadow: wsConnected
+                ? "0 0 12px rgba(0,255,200,0.25), 0 0 24px rgba(0,255,200,0.1), inset 0 0 8px rgba(0,255,200,0.05)"
+                : "none",
             }}
             title={wsConnected ? `Connected to ${BRIDGE_URL}` : `Disconnected — trying ${BRIDGE_URL}`}
             onClick={() => window.open("/bridge.js", "_blank")}
@@ -1447,16 +1449,17 @@ export default function App() {
                 width: "6px",
                 height: "6px",
                 borderRadius: "50%",
-                background: wsConnected ? "#22c55e" : "#ef4444",
-                animation: wsConnected ? "pulse-ring 2s infinite" : "none",
+                background: wsConnected ? "#00ffc8" : "#ef4444",
+                boxShadow: wsConnected ? "0 0 6px #00ffc8" : "none",
+                transition: "all 0.4s ease",
               }}
             />
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: wsConnected ? "#22c55e" : "#ef4444" }}>
-              {wsConnected ? "BRIDGE" : "OFFLINE"}
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: wsConnected ? "#00ffc8" : "#ef4444", transition: "color 0.3s" }}>
+              {wsConnected ? "BRIDGE ONLINE" : "OFFLINE"}
             </span>
             {wsConnected && (
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#666", marginLeft: "4px" }}>
-                {msgCount > 0 ? `${msgCount} msgs • ${lastMsg}` : "0 msgs"}
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "rgba(0,255,200,0.5)", marginLeft: "4px" }}>
+                {msgCount > 0 ? `${msgCount} msgs` : "0 msgs"}
               </span>
             )}
           </div>
