@@ -733,156 +733,201 @@ export default function App() {
     label?: string;
   }>>([]);
 
-  // Handler for incoming bridge messages
-  const handleBridgeMessage = useCallback((event: MessageEvent) => {
-    try {
-      const data = JSON.parse(event.data);
-      setMsgCount(c => c + 1);
-      setLastMsg(`${data.type || "?"}${data.subtype ? "/" + data.subtype : ""}`);
-      console.log("[BRIDGE MSG]", data.type, data.subtype || "", data);
-      if (!data.type) return;
+  // ── Message buffer for throttled processing ──
+  const msgBufferRef = useRef<any[]>([]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flushMessages = useCallback(() => {
+    const batch = msgBufferRef.current;
+    msgBufferRef.current = [];
+    if (batch.length === 0) return;
+
+    // Update count once for entire batch
+    setMsgCount(c => c + batch.length);
+
+    // Find last meaningful message label
+    const lastLabel = batch.reduce((acc, d) => `${d.type || "?"}${d.subtype ? "/" + d.subtype : ""}`, "");
+    setLastMsg(lastLabel);
+
+    // Accumulate state changes, apply once
+    let feedbackUpdate: Record<string, any> = {};
+    let newActiveCue: string | null = null;
+    let channelUpdates: any[] = [];
+    let patchData: any[] | null = null;
+    let cueUpdates: any[] = [];
+    let cuePropertyUpdates: any[] = [];
+    let commandLineText: string | null = null;
+    let cuesLiveFlag = false;
+
+    for (const data of batch) {
+      if (!data.type) continue;
 
       switch (data.type) {
         case "console_feedback": {
-          // Any console feedback implies bridge<->console path is alive
-          setConsoleFeedback(prev => ({
-            ...prev,
-            consoleOnline: true,
-            commandLine:
-              data.command_line ??
-              (data.subtype === "raw" && data.address ? `${data.address} ${JSON.stringify(data.args || [])}` : prev.commandLine),
-            channelCount: data.channel_count ?? prev.channelCount,
-          }));
+          feedbackUpdate.consoleOnline = true;
 
-          if (data.subtype === "active_cue" || data.active_cue !== undefined) {
-            setConsoleFeedback(prev => ({
-              ...prev,
-              activeCue: data.active_cue ?? data.cue ?? prev.activeCue,
-            }));
-            if (data.active_cue || data.cue) {
-              setActiveCue(String(data.active_cue ?? data.cue));
-            }
+          // Only update commandLine from explicit command_line subtypes
+          if (data.subtype === "command_line" && data.text != null) {
+            commandLineText = data.text;
           }
 
-          if (data.subtype === "channel_intensity" || data.channels) {
-            const chData = data.channels || [];
-            setChannels(prev => {
-              const updated = [...prev];
-              chData.forEach((ch: any) => {
-                const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
-                if (idx !== -1) {
-                  updated[idx] = {
-                    ...updated[idx],
-                    intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
-                    r: ch.r ?? updated[idx].r,
-                    g: ch.g ?? updated[idx].g,
-                    b: ch.b ?? updated[idx].b,
-                  };
-                }
-              });
-              return updated;
-            });
+          if (data.channel_count != null) {
+            feedbackUpdate.channelCount = data.channel_count;
           }
 
-          if (data.subtype === "patch" || data.patch) {
-            const patchData = data.patch || [];
-            setConsolePatch(patchData.map((p: any) => ({
-              channel: p.channel ?? p.chan,
-              universe: p.universe ?? p.uni ?? 1,
-              address: p.address ?? p.addr ?? p.dmx,
-              fixture: p.fixture ?? p.type ?? "",
-              label: p.label ?? "",
-            })));
+          // Guard active cue: only from explicit active_cue subtype
+          if (data.subtype === "active_cue" && data.active_cue != null) {
+            newActiveCue = String(data.active_cue);
           }
 
-          // Cue data from console
+          if (data.subtype === "channel_intensity" && data.channels) {
+            channelUpdates.push(...data.channels);
+          }
+
+          if ((data.subtype === "patch" || data.subtype === "patch_complete") && data.patch) {
+            patchData = data.patch;
+          }
+
           if (data.subtype === "cue_data") {
-            setCuesLive(true);
-            setCues(prev => {
-              const existing = prev.find(c => c.id === data.cue_number);
-              const cueEntry = {
-                id: data.cue_number,
-                label: data.label || existing?.label || "",
-                time: data.up_time != null ? String(data.up_time) : (existing?.time || "0"),
-                upTime: data.up_time,
-                downTime: data.down_time,
-              };
-              if (existing) {
-                return prev.map(c => c.id === data.cue_number ? { ...c, ...cueEntry } : c);
-              }
-              // Insert in sorted order
-              const newCues = [...prev, cueEntry];
-              newCues.sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
-              return newCues;
-            });
+            cuesLiveFlag = true;
+            cueUpdates.push(data);
           }
 
           if (data.subtype === "cue_property") {
-            setCues(prev => prev.map(c => {
-              if (c.id !== data.cue_number) return c;
-              if (data.property === "label") return { ...c, label: String(data.value || "") };
-              if (data.property === "duration" || data.property === "up") return { ...c, time: String(data.value ?? c.time), upTime: data.value };
-              if (data.property === "down") return { ...c, downTime: data.value };
-              return c;
-            }));
+            cuePropertyUpdates.push(data);
           }
           break;
         }
         case "active_cue": {
-          setConsoleFeedback(prev => ({ ...prev, activeCue: data.cue ?? data.value }));
-          if (data.cue || data.value) setActiveCue(String(data.cue ?? data.value));
+          const cue = data.cue ?? data.value;
+          if (cue != null) newActiveCue = String(cue);
           break;
         }
         case "channel_intensity": {
-          const chData = data.channels || [];
-          setChannels(prev => {
-            const updated = [...prev];
-            chData.forEach((ch: any) => {
-              const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
-              if (idx !== -1) {
-                updated[idx] = {
-                  ...updated[idx],
-                  intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
-                };
-              }
-            });
-            return updated;
-          });
+          if (data.channels) channelUpdates.push(...data.channels);
           break;
         }
-        case "patch": {
-          const patchData = data.patch || data.data || [];
-          setConsolePatch(patchData.map((p: any) => ({
-            channel: p.channel ?? p.chan,
-            universe: p.universe ?? p.uni ?? 1,
-            address: p.address ?? p.addr ?? p.dmx,
-            fixture: p.fixture ?? p.type ?? "",
-            label: p.label ?? "",
-          })));
+        case "patch":
+        case "patch_complete": {
+          const pd = data.patch || data.data || [];
+          if (pd.length) patchData = pd;
           break;
         }
         case "pong": {
-          setConsoleFeedback(prev => ({
-            ...prev,
-            consoleOnline: true,
-            lastPong: Date.now(),
-          }));
+          feedbackUpdate.consoleOnline = true;
+          feedbackUpdate.lastPong = Date.now();
           break;
         }
         case "command_line": {
-          setConsoleFeedback(prev => ({
-            ...prev,
-            commandLine: data.text ?? data.value ?? "",
-          }));
+          commandLineText = data.text ?? data.value ?? "";
           break;
         }
         default:
           break;
       }
+    }
+
+    // Apply accumulated state in minimal updates
+    if (Object.keys(feedbackUpdate).length > 0 || commandLineText !== null || newActiveCue !== null) {
+      setConsoleFeedback(prev => ({
+        ...prev,
+        ...feedbackUpdate,
+        ...(commandLineText !== null ? { commandLine: commandLineText } : {}),
+        ...(newActiveCue !== null ? { activeCue: newActiveCue } : {}),
+      }));
+    }
+
+    if (newActiveCue !== null) {
+      setActiveCue(prev => prev === newActiveCue ? prev : newActiveCue!);
+    }
+
+    if (channelUpdates.length > 0) {
+      setChannels(prev => {
+        const updated = [...prev];
+        channelUpdates.forEach((ch: any) => {
+          const idx = updated.findIndex(c => c.id === ch.id || c.id === ch.channel);
+          if (idx !== -1) {
+            updated[idx] = {
+              ...updated[idx],
+              intensity: ch.intensity ?? ch.level ?? updated[idx].intensity,
+              r: ch.r ?? updated[idx].r,
+              g: ch.g ?? updated[idx].g,
+              b: ch.b ?? updated[idx].b,
+            };
+          }
+        });
+        return updated;
+      });
+    }
+
+    if (patchData) {
+      setConsolePatch(patchData.map((p: any) => ({
+        channel: p.channel ?? p.chan,
+        universe: p.universe ?? p.uni ?? 1,
+        address: p.address ?? p.addr ?? p.dmx,
+        fixture: p.fixture ?? p.type ?? "",
+        label: p.label ?? "",
+      })));
+    }
+
+    if (cuesLiveFlag) setCuesLive(true);
+    if (cueUpdates.length > 0) {
+      setCues(prev => {
+        let newCues = [...prev];
+        for (const data of cueUpdates) {
+          const existing = newCues.find(c => c.id === data.cue_number);
+          const cueEntry = {
+            id: data.cue_number,
+            label: data.label || existing?.label || "",
+            time: data.up_time != null ? String(data.up_time) : (existing?.time || "0"),
+            upTime: data.up_time,
+            downTime: data.down_time,
+          };
+          if (existing) {
+            newCues = newCues.map(c => c.id === data.cue_number ? { ...c, ...cueEntry } : c);
+          } else {
+            newCues.push(cueEntry);
+          }
+        }
+        newCues.sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
+        return newCues;
+      });
+    }
+
+    if (cuePropertyUpdates.length > 0) {
+      setCues(prev => {
+        let newCues = [...prev];
+        for (const data of cuePropertyUpdates) {
+          newCues = newCues.map(c => {
+            if (c.id !== data.cue_number) return c;
+            if (data.property === "label") return { ...c, label: String(data.value || "") };
+            if (data.property === "duration" || data.property === "up") return { ...c, time: String(data.value ?? c.time), upTime: data.value };
+            if (data.property === "down") return { ...c, downTime: data.value };
+            return c;
+          });
+        }
+        return newCues;
+      });
+    }
+  }, []);
+
+  // Handler for incoming bridge messages — buffers and flushes every 150ms
+  const handleBridgeMessage = useCallback((event: MessageEvent) => {
+    try {
+      const data = JSON.parse(event.data);
+      msgBufferRef.current.push(data);
+
+      // Schedule flush if not already pending
+      if (!flushTimerRef.current) {
+        flushTimerRef.current = setTimeout(() => {
+          flushTimerRef.current = null;
+          flushMessages();
+        }, 150);
+      }
     } catch {
       // not JSON or unrecognized — ignore
     }
-  }, []);
+  }, [flushMessages]);
 
   // Send typed message to bridge
   const sendBridgeMessage = useCallback((msg: Record<string, any>) => {
