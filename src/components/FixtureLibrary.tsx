@@ -271,6 +271,9 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
     onPatch("/eos/key/patch");
 
     setTimeout(() => {
+      const eosTypeString = selectedEos?.t || null;
+      let cmdIndex = 0;
+
       for (let i = 0; i < qty; i++) {
         const ch = startCh + i;
         const addr = dmx + i * chPerFixture;
@@ -288,9 +291,21 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
         newEntries.push(entry);
         txPatches.push({ channel: ch, universe: uni, dmxAddress: addr, fixture: selected.model, label: entryLabel });
 
+        // Address command
+        const addrDelay = cmdIndex * 200;
         setTimeout(() => {
           onPatch("/eos/newcmd", `Chan ${ch} Address ${uni}/${addr} Enter`);
-        }, i * 200);
+        }, addrDelay);
+        cmdIndex++;
+
+        // Type command (separate, using exact EOS type string)
+        if (eosTypeString) {
+          const typeDelay = cmdIndex * 200;
+          setTimeout(() => {
+            onPatch("/eos/newcmd", `Chan ${ch} Type ${eosTypeString} Enter`);
+          }, typeDelay);
+          cmdIndex++;
+        }
       }
 
       setPatchList((prev) => [...prev, ...newEntries]);
@@ -298,14 +313,20 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
       // Save transaction
       tx.patches = txPatches;
       tx.status = "completed";
-      tx.commands = txPatches.map((p) => ({ path: "/eos/newcmd", value: `Chan ${p.channel} Address ${p.universe}/${p.dmxAddress} Enter` }));
+      const cmds = txPatches.map((p) => ({ path: "/eos/newcmd", value: `Chan ${p.channel} Address ${p.universe}/${p.dmxAddress} Enter` }));
+      if (eosTypeString) {
+        txPatches.forEach((p) => {
+          cmds.push({ path: "/eos/newcmd", value: `Chan ${p.channel} Type ${eosTypeString} Enter` });
+        });
+      }
+      tx.commands = cmds;
       saveTransaction(tx);
       setTransactions(loadTransactions());
 
       // Return to Live mode
       setTimeout(() => {
         onPatch("/eos/key/live");
-      }, qty * 200 + 500);
+      }, cmdIndex * 200 + 500);
     }, 400);
   };
 
