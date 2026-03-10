@@ -540,30 +540,29 @@ function CueStack({ cues, activeCue, onGo, isLive = false }) {
             gap: "10px",
             padding: "8px 12px",
             borderRadius: "7px",
-            background: activeCue === cue.id ? "rgba(255,107,43,0.15)" : "rgba(255,255,255,0.02)",
-            border: `1px solid ${activeCue === cue.id ? "rgba(255,107,43,0.5)" : "rgba(255,255,255,0.05)"}`,
+            background: activeCue === cue.id ? "rgba(255,107,43,0.08)" : "#fff",
+            border: `1px solid ${activeCue === cue.id ? "rgba(255,107,43,0.4)" : "#e5e7eb"}`,
             cursor: "pointer",
             transition: "all 0.2s",
-            boxShadow: activeCue === cue.id ? "0 0 16px rgba(255,107,43,0.2)" : "none",
+            boxShadow: activeCue === cue.id ? "0 2px 12px rgba(255,107,43,0.1)" : "none",
           }}
         >
           <div
             style={{
               width: "6px", height: "6px", borderRadius: "50%",
-              background: activeCue === cue.id ? "#FF6B2B" : "#333",
+              background: activeCue === cue.id ? "#FF6B2B" : "#d1d5db",
               flexShrink: 0,
-              boxShadow: activeCue === cue.id ? "0 0 8px #FF6B2B" : "none",
             }}
           />
           <span style={{
             fontFamily: "'Space Mono', monospace", fontSize: "11px",
-            color: activeCue === cue.id ? "#FF6B2B" : "#666", width: "44px",
+            color: activeCue === cue.id ? "#FF6B2B" : "#9ca3af", width: "44px",
           }}>
             {cue.id}
           </span>
           <span style={{
             flex: 1, fontSize: "12px",
-            color: activeCue === cue.id ? "#e0e0e0" : "#555",
+            color: activeCue === cue.id ? "#1f2937" : "#6b7280",
             fontFamily: "'DM Sans', sans-serif",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
@@ -579,7 +578,7 @@ function CueStack({ cues, activeCue, onGo, isLive = false }) {
               ↓{cue.downTime}s
             </span>
           )}
-          <span style={{ fontSize: "10px", color: "#444", fontFamily: "'Space Mono', monospace" }}>{cue.time}s</span>
+          <span style={{ fontSize: "10px", color: "#9ca3af", fontFamily: "'Space Mono', monospace" }}>{cue.time}s</span>
         </div>
       ))}
     </div>
