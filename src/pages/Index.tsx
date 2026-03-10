@@ -2343,7 +2343,7 @@ export default function App() {
                       transition: "left 0.2s",
                     }} />
                   </div>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#444" }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#9ca3af" }}>
                     PREVIEW
                   </span>
                 </div>
