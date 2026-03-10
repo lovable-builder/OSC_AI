@@ -1192,7 +1192,7 @@ export default function App() {
               description: `Patch ch ${ch} → DMX ${preset.universe}/${addr}`,
             });
           }
-          commands.push({ path: "/eos/key/live", description: "Return to live mode" });
+          // Do NOT auto-return to live — user may want to continue patching
           
           setAiOscHistory(prev => [...prev, {
             role: "assistant",
