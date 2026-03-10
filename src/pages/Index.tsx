@@ -1206,6 +1206,18 @@ export default function App() {
         }
       }
 
+      // Fuzzy match fixture type from prompt for context
+      let resolvedFixtureType: string | undefined;
+      try {
+        const eosFixtures = await loadEOSFixtures();
+        if (eosFixtures.length > 0) {
+          const fixtureMatch = fuzzyMatchFixture(eosFixtures, prompt);
+          if (fixtureMatch) {
+            resolvedFixtureType = fixtureMatch.t;
+          }
+        }
+      } catch { /* ignore */ }
+
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc-agent`,
         {
@@ -1221,6 +1233,7 @@ export default function App() {
               activeCue: consoleFeedback.activeCue,
               consoleOnline: consoleFeedback.consoleOnline,
               channelCount: consoleFeedback.channelCount,
+              fixtureType: resolvedFixtureType,
             }
           }),
         }
