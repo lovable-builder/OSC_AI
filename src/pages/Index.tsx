@@ -2252,7 +2252,7 @@ export default function App() {
                   borderRadius: "6px",
                   border: "none",
                   background: "#FF6B2B",
-                  color: "#000",
+                  color: "#fff",
                   fontFamily: "'Space Mono', monospace",
                   fontSize: "10px",
                   fontWeight: "700",
