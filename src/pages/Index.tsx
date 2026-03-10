@@ -106,7 +106,7 @@ const STEP_COLORS = {
   soft: "#EAB308",
 };
 
-// ── PARTICLES BACKGROUND ───────────────────────────────────────────────────────
+// ── PARTICLES BACKGROUND (light) ───────────────────────────────────────────────
 function ParticleField() {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -114,14 +114,14 @@ function ParticleField() {
     const ctx = canvas.getContext("2d");
     let W = (canvas.width = window.innerWidth);
     let H = (canvas.height = window.innerHeight);
-    const particles = Array.from({ length: 100 }, () => ({
+    const particles = Array.from({ length: 50 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 1.5 + 0.5,
-      alpha: Math.random() * 0.5 + 0.1,
-      color: Math.random() > 0.6 ? "#00ffc8" : Math.random() > 0.5 ? "#FF6B2B" : "#ffffff",
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.2 + 0.3,
+      alpha: Math.random() * 0.12 + 0.03,
+      color: Math.random() > 0.5 ? "#FF6B2B" : "#c4c4c4",
     }));
     let frame;
     const draw = () => {
@@ -135,21 +135,17 @@ function ParticleField() {
         if (p.y > H) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle =
-          p.color +
-          Math.floor(p.alpha * 255)
-            .toString(16)
-            .padStart(2, "0");
+        ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2, "0");
         ctx.fill();
       });
       particles.forEach((p, i) => {
         particles.slice(i + 1).forEach((q) => {
           const d = Math.hypot(p.x - q.x, p.y - q.y);
-          if (d < 140) {
+          if (d < 120) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(0,255,200,${0.06 * (1 - d / 140)})`;
+            ctx.strokeStyle = `rgba(255,107,43,${0.03 * (1 - d / 120)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -169,7 +165,7 @@ function ParticleField() {
     };
   }, []);
   return (
-    <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0.6 }} />
+    <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0.3 }} />
   );
 }
 
@@ -213,14 +209,14 @@ function GlowButton({ children, onClick, color = "#FF6B2B", active = false, disa
         border: "none",
         cursor: disabled ? "not-allowed" : "pointer",
         background: active ? color : "transparent",
-        color: active ? "#000" : color,
+        color: active ? "#fff" : color,
         fontFamily: "'Space Mono', monospace",
         fontWeight: "700",
         fontSize: "11px",
         letterSpacing: "0.1em",
         padding: "8px 16px",
         borderRadius: "6px",
-        boxShadow: active ? `0 0 20px ${color}88, 0 0 40px ${color}44` : `inset 0 0 0 1px ${color}44`,
+        boxShadow: active ? `0 2px 12px ${color}33` : `inset 0 0 0 1px ${color}44`,
         transform: pressed ? "scale(0.96)" : "scale(1)",
         transition: "all 0.15s cubic-bezier(0.4,0,0.2,1)",
         opacity: disabled ? 0.3 : 1,
@@ -367,14 +363,14 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "#fff",
+        border: "1px solid #e5e7eb",
         borderRadius: "10px",
         padding: "12px 14px",
         transition: "border-color 0.2s",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(255,107,43,0.3)")}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FF6B2B66")}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
     >
       <div
         style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: cmd.params.length ? "10px" : "0" }}
@@ -397,13 +393,12 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
             borderRadius: "5px",
             border: "none",
             background: fired ? "#22c55e" : "#FF6B2B",
-            color: "#000",
+            color: "#fff",
             fontFamily: "'Space Mono', monospace",
             fontSize: "10px",
             fontWeight: "700",
             cursor: "pointer",
             transition: "all 0.2s",
-            boxShadow: fired ? "0 0 12px #22c55e88" : "0 0 8px #FF6B2B44",
             transform: fired ? "scale(0.95)" : "scale(1)",
           }}
         >
@@ -423,17 +418,17 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
                 style={{
                   flex: 1,
                   minWidth: "60px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "#f9fafb",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "5px",
                   padding: "5px 10px",
-                  color: "#ddd",
+                  color: "#1f2937",
                   fontSize: "11px",
                   fontFamily: "'Space Mono', monospace",
                   outline: "none",
                 }}
                 onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
-                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
               />
             );
           })}
@@ -443,7 +438,7 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
         style={{
           marginTop: "6px",
           fontSize: "9px",
-          color: "#333",
+          color: "#9ca3af",
           fontFamily: "'Space Mono', monospace",
           wordBreak: "break-all",
         }}
@@ -502,7 +497,7 @@ function FixtureGrid({ channels }) {
               right: 0,
               textAlign: "center",
               fontSize: "8px",
-              color: "rgba(255,255,255,0.5)",
+              color: "#6b7280",
               fontFamily: "'Space Mono', monospace",
             }}
           >
@@ -531,7 +526,7 @@ function CueStack({ cues, activeCue, onGo, isLive = false }) {
         </div>
       )}
       {cues.length === 0 && (
-        <div style={{ textAlign: "center", padding: "24px", color: "#333", fontFamily: "'Space Mono', monospace", fontSize: "11px" }}>
+        <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontFamily: "'Space Mono', monospace", fontSize: "11px" }}>
           No cues loaded. Click IMPORT CUES to sync from console.
         </div>
       )}
@@ -545,30 +540,29 @@ function CueStack({ cues, activeCue, onGo, isLive = false }) {
             gap: "10px",
             padding: "8px 12px",
             borderRadius: "7px",
-            background: activeCue === cue.id ? "rgba(255,107,43,0.15)" : "rgba(255,255,255,0.02)",
-            border: `1px solid ${activeCue === cue.id ? "rgba(255,107,43,0.5)" : "rgba(255,255,255,0.05)"}`,
+            background: activeCue === cue.id ? "rgba(255,107,43,0.08)" : "#fff",
+            border: `1px solid ${activeCue === cue.id ? "rgba(255,107,43,0.4)" : "#e5e7eb"}`,
             cursor: "pointer",
             transition: "all 0.2s",
-            boxShadow: activeCue === cue.id ? "0 0 16px rgba(255,107,43,0.2)" : "none",
+            boxShadow: activeCue === cue.id ? "0 2px 12px rgba(255,107,43,0.1)" : "none",
           }}
         >
           <div
             style={{
               width: "6px", height: "6px", borderRadius: "50%",
-              background: activeCue === cue.id ? "#FF6B2B" : "#333",
+              background: activeCue === cue.id ? "#FF6B2B" : "#d1d5db",
               flexShrink: 0,
-              boxShadow: activeCue === cue.id ? "0 0 8px #FF6B2B" : "none",
             }}
           />
           <span style={{
             fontFamily: "'Space Mono', monospace", fontSize: "11px",
-            color: activeCue === cue.id ? "#FF6B2B" : "#666", width: "44px",
+            color: activeCue === cue.id ? "#FF6B2B" : "#9ca3af", width: "44px",
           }}>
             {cue.id}
           </span>
           <span style={{
             flex: 1, fontSize: "12px",
-            color: activeCue === cue.id ? "#e0e0e0" : "#555",
+            color: activeCue === cue.id ? "#1f2937" : "#6b7280",
             fontFamily: "'DM Sans', sans-serif",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
@@ -584,7 +578,7 @@ function CueStack({ cues, activeCue, onGo, isLive = false }) {
               ↓{cue.downTime}s
             </span>
           )}
-          <span style={{ fontSize: "10px", color: "#444", fontFamily: "'Space Mono', monospace" }}>{cue.time}s</span>
+          <span style={{ fontSize: "10px", color: "#9ca3af", fontFamily: "'Space Mono', monospace" }}>{cue.time}s</span>
         </div>
       ))}
     </div>
@@ -600,9 +594,7 @@ function CommandLog({ logs, onClear }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-        <span
-          style={{ fontSize: "10px", color: "#444", fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em" }}
-        >
+        <span style={{ fontSize: "10px", color: "#9ca3af", fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em" }}>
           OSC LOG
         </span>
         <button
@@ -610,7 +602,7 @@ function CommandLog({ logs, onClear }) {
           style={{
             background: "none",
             border: "none",
-            color: "#333",
+            color: "#9ca3af",
             cursor: "pointer",
             fontSize: "10px",
             fontFamily: "'Space Mono', monospace",
@@ -624,38 +616,31 @@ function CommandLog({ logs, onClear }) {
         style={{
           flex: 1,
           overflowY: "auto",
-          background: "#050505",
+          background: "#f9fafb",
           borderRadius: "8px",
           padding: "10px",
           minHeight: "120px",
-          border: "1px solid rgba(255,255,255,0.04)",
+          border: "1px solid #e5e7eb",
         }}
       >
         {logs.length === 0 && (
-          <span style={{ color: "#1a1a1a", fontSize: "11px", fontFamily: "'Space Mono', monospace" }}>
+          <span style={{ color: "#d1d5db", fontSize: "11px", fontFamily: "'Space Mono', monospace" }}>
             // awaiting commands...
           </span>
         )}
         {logs.map((l, i) => (
           <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "3px", alignItems: "baseline" }}>
-            <span style={{ color: "#2a2a2a", fontSize: "10px", fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>
+            <span style={{ color: "#9ca3af", fontSize: "10px", fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>
               {l.time}
             </span>
             <span style={{ fontSize: "10px", color: "#22c55e", fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>
               →
             </span>
-            <span
-              style={{
-                fontSize: "10px",
-                color: "#FF6B2B88",
-                fontFamily: "'Space Mono', monospace",
-                wordBreak: "break-all",
-              }}
-            >
+            <span style={{ fontSize: "10px", color: "#FF6B2B", fontFamily: "'Space Mono', monospace", wordBreak: "break-all" }}>
               {l.path}
             </span>
             {l.val && (
-              <span style={{ fontSize: "10px", color: "#3b82f688", fontFamily: "'Space Mono', monospace" }}>
+              <span style={{ fontSize: "10px", color: "#3b82f6", fontFamily: "'Space Mono', monospace" }}>
                 [{l.val}]
               </span>
             )}
@@ -1459,12 +1444,11 @@ export default function App() {
   // ── RENDER ───────────────────────────────────────────────────────────────────
   return (
     <div
-      className="scanlines cyber-grid"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg, #020208 0%, #060610 30%, #0a0812 100%)",
+        background: "#fafafa",
         fontFamily: "'DM Sans', sans-serif",
-        color: "#e0e0e0",
+        color: "#1f2937",
         overflow: "hidden auto",
       }}
     >
@@ -1473,16 +1457,16 @@ export default function App() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,255,200,0.2); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,107,43,0.3); border-radius: 2px; }
         @keyframes bar-dance { from { transform: scaleY(0.4); } to { transform: scaleY(1.2); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(0,255,200,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,200,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,200,0); } }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(255,107,43,0.3); } 70% { box-shadow: 0 0 0 8px rgba(255,107,43,0); } 100% { box-shadow: 0 0 0 0 rgba(255,107,43,0); } }
         @keyframes shimmer { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
         .nav-btn { transition: all 0.2s; position: relative; overflow: hidden; }
-        .nav-btn:hover { color: #00ffc8 !important; text-shadow: 0 0 12px rgba(0,255,200,0.5); }
-        .nav-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #00ffc8, transparent); opacity: 0; transition: opacity 0.3s; }
+        .nav-btn:hover { color: #FF6B2B !important; }
+        .nav-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: #FF6B2B; opacity: 0; transition: opacity 0.3s; }
         .nav-btn:hover::after { opacity: 1; }
         .msg-in { animation: fadeUp 0.3s ease forwards; }
       `}</style>
@@ -1506,11 +1490,11 @@ export default function App() {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: showHero ? "rgba(2,2,8,0.9)" : "rgba(2,2,8,0.95)",
-          backdropFilter: "blur(24px) saturate(180%)",
-          borderBottom: "1px solid rgba(0,255,200,0.08)",
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          borderBottom: "1px solid #e5e7eb",
           padding: "0 24px",
-          height: "60px",
+          height: "56px",
           display: "flex",
           alignItems: "center",
           gap: "0",
@@ -1519,40 +1503,39 @@ export default function App() {
         }}
       >
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "32px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "28px" }}>
           <div
             style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #FF6B2B 0%, #00ffc8 100%)",
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #FF6B2B 0%, #FF8C42 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 24px rgba(0,255,200,0.3), 0 0 48px rgba(255,107,43,0.2)",
-              fontSize: "18px",
+              boxShadow: "0 2px 8px rgba(255,107,43,0.25)",
+              fontSize: "16px",
               flexShrink: 0,
-              animation: "hex-rotate 20s linear infinite",
             }}
           >
             ⚡
           </div>
           <div>
             <div
-              className="holo-text"
               style={{
                 fontFamily: "'Orbitron', 'Space Mono', monospace",
                 fontWeight: "900",
-                fontSize: "14px",
-                letterSpacing: "0.12em",
+                fontSize: "13px",
+                letterSpacing: "0.1em",
+                color: "#1f2937",
               }}
             >
-              EOS<span>AI</span>
+              EOS<span style={{ color: "#FF6B2B" }}>AI</span>
             </div>
             <div
-              style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#00ffc866", letterSpacing: "0.2em" }}
+              style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#9ca3af", letterSpacing: "0.15em" }}
             >
-              CONSOLE INTELLIGENCE v2.0
+              CONSOLE INTELLIGENCE
             </div>
           </div>
         </div>
@@ -1568,18 +1551,17 @@ export default function App() {
               className="nav-btn"
               onClick={() => setActiveModule(tab.id)}
               style={{
-                padding: "8px 18px",
+                padding: "8px 16px",
                 borderRadius: "8px",
                 border: "none",
-                background: activeModule === tab.id ? "rgba(0,255,200,0.08)" : "transparent",
-                color: activeModule === tab.id ? "#00ffc8" : "#555",
+                background: activeModule === tab.id ? "rgba(255,107,43,0.08)" : "transparent",
+                color: activeModule === tab.id ? "#FF6B2B" : "#6b7280",
                 fontFamily: "'Orbitron', 'Space Mono', monospace",
                 fontSize: "10px",
                 fontWeight: "700",
-                letterSpacing: "0.12em",
+                letterSpacing: "0.1em",
                 cursor: "pointer",
-                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(0,255,200,0.2), 0 0 16px rgba(0,255,200,0.1)" : "none",
-                textShadow: activeModule === tab.id ? "0 0 8px rgba(0,255,200,0.5)" : "none",
+                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(255,107,43,0.2)" : "none",
               }}
             >
               <span style={{ marginRight: "6px" }}>{tab.icon}</span>
@@ -1589,22 +1571,19 @@ export default function App() {
         </nav>
 
         {/* Status */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {/* WebSocket Bridge Status */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              padding: "4px 14px",
+              padding: "4px 12px",
               borderRadius: "20px",
-              background: wsConnected ? "rgba(0,255,200,0.08)" : "rgba(239,68,68,0.1)",
-              border: `1px solid ${wsConnected ? "rgba(0,255,200,0.3)" : "rgba(239,68,68,0.2)"}`,
+              background: wsConnected ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.06)",
+              border: `1px solid ${wsConnected ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.2)"}`,
               cursor: "pointer",
-              transition: "all 0.4s ease",
-              boxShadow: wsConnected
-                ? "0 0 12px rgba(0,255,200,0.25), 0 0 24px rgba(0,255,200,0.1), inset 0 0 8px rgba(0,255,200,0.05)"
-                : "none",
+              transition: "all 0.3s ease",
             }}
             title={wsConnected ? `Connected to ${BRIDGE_URL}` : `Disconnected — trying ${BRIDGE_URL}`}
             onClick={() => window.open("/bridge.js", "_blank")}
@@ -1614,17 +1593,16 @@ export default function App() {
                 width: "6px",
                 height: "6px",
                 borderRadius: "50%",
-                background: wsConnected ? "#00ffc8" : "#ef4444",
-                boxShadow: wsConnected ? "0 0 6px #00ffc8" : "none",
-                transition: "all 0.4s ease",
+                background: wsConnected ? "#22c55e" : "#ef4444",
+                transition: "all 0.3s ease",
               }}
             />
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: wsConnected ? "#00ffc8" : "#ef4444", transition: "color 0.3s" }}>
-              {wsConnected ? "BRIDGE ONLINE" : "OFFLINE"}
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: wsConnected ? "#22c55e" : "#ef4444" }}>
+              {wsConnected ? "BRIDGE" : "OFFLINE"}
             </span>
             {wsConnected && (
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "rgba(0,255,200,0.5)", marginLeft: "4px" }}>
-                {msgCount > 0 ? `${msgCount} msgs` : "0 msgs"}
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#9ca3af", marginLeft: "2px" }}>
+                {msgCount > 0 ? `${msgCount}` : "0"}
               </span>
             )}
           </div>
@@ -1636,7 +1614,7 @@ export default function App() {
                 gap: "6px",
                 padding: "4px 12px",
                 borderRadius: "20px",
-                background: "rgba(255,107,43,0.1)",
+                background: "rgba(255,107,43,0.06)",
                 border: "1px solid rgba(255,107,43,0.2)",
               }}
             >
@@ -1674,18 +1652,18 @@ export default function App() {
             {/* Chat Panel */}
             <div
               style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "16px",
                 overflow: "hidden",
-                boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
               }}
             >
               {/* Panel Header */}
               <div
                 style={{
                   padding: "14px 18px",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  borderBottom: "1px solid #f3f4f6",
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
@@ -1698,14 +1676,14 @@ export default function App() {
                     height: "8px",
                     borderRadius: "50%",
                     background: "#22c55e",
-                    boxShadow: "0 0 8px #22c55e",
+                    boxShadow: "none",
                   }}
                 />
                 <span
                   style={{
                     fontFamily: "'Space Mono', monospace",
                     fontSize: "10px",
-                    color: "#666",
+                    color: "#9ca3af",
                     letterSpacing: "0.12em",
                   }}
                 >
@@ -1752,23 +1730,23 @@ export default function App() {
                         maxWidth: "82%",
                         background:
                           msg.role === "user"
-                            ? "linear-gradient(135deg, rgba(255,107,43,0.2), rgba(255,61,0,0.15))"
-                            : "rgba(255,255,255,0.04)",
-                        border: `1px solid ${msg.role === "user" ? "rgba(255,107,43,0.3)" : "rgba(255,255,255,0.06)"}`,
+                            ? "linear-gradient(135deg, rgba(255,107,43,0.1), rgba(255,107,43,0.06))"
+                            : "#f9fafb",
+                        border: `1px solid ${msg.role === "user" ? "rgba(255,107,43,0.2)" : "#e5e7eb"}`,
                         borderRadius: msg.role === "user" ? "14px 14px 3px 14px" : "14px 14px 14px 3px",
                         padding: "10px 14px",
                         fontSize: "13px",
                         lineHeight: "1.6",
-                        color: msg.role === "user" ? "#ffd0b5" : "#bbb",
+                        color: msg.role === "user" ? "#9a4a1c" : "#4b5563",
                         fontFamily: "'DM Sans', sans-serif",
                       }}
                     >
                       {msg.type === "loading" ? (
-                        <span style={{ color: "#444" }}>
+                        <span style={{ color: "#9ca3af" }}>
                           thinking<span style={{ animation: "shimmer 1s infinite" }}>...</span>
                         </span>
                       ) : msg.role === "assistant" ? (
-                        <div className="prose prose-sm prose-invert max-w-none" style={{ fontSize: "13px", lineHeight: "1.6" }}>
+                        <div className="prose prose-sm max-w-none" style={{ fontSize: "13px", lineHeight: "1.6" }}>
                           <ReactMarkdown>{msg.text}</ReactMarkdown>
                         </div>
                       ) : (
@@ -1789,19 +1767,19 @@ export default function App() {
                           display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
                           padding: "8px 6px",
                           borderRadius: "10px",
-                          background: "rgba(255,107,43,0.04)",
-                          border: "1px solid rgba(255,107,43,0.15)",
+                          background: "rgba(255,107,43,0.03)",
+                          border: "1px solid #e5e7eb",
                           cursor: "pointer",
                           transition: "all 0.25s",
                         }}
                         onMouseOver={(e) => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.12)";
-                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.5)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.08)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.4)";
                           (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
                         }}
                         onMouseOut={(e) => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.04)";
-                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.15)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.03)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb";
                           (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                         }}
                       >
@@ -1819,7 +1797,7 @@ export default function App() {
                           <div style={{
                             width: "100%", height: "50px",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            background: "rgba(255,255,255,0.02)",
+                            background: "#f3f4f6",
                             borderRadius: "4px",
                             fontSize: "20px", opacity: 0.3,
                           }}>◈</div>
@@ -1832,7 +1810,7 @@ export default function App() {
                         </span>
                         <span style={{
                           fontFamily: "'DM Sans', sans-serif", fontSize: "8px",
-                          color: "#444",
+                          color: "#9ca3af",
                         }}>
                           {c.desc}
                         </span>
@@ -1847,15 +1825,15 @@ export default function App() {
                 <div
                   style={{
                     padding: "8px 18px",
-                    borderTop: "1px solid rgba(255,255,255,0.03)",
+                    borderTop: "1px solid #f3f4f6",
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    background: "rgba(0,0,0,0.2)",
+                    background: "#fafafa",
                   }}
                 >
                   <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#22c55e" }} />
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#555" }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#9ca3af" }}>
                     CONSOLE: <span style={{ color: selectedConsole.color }}>{selectedConsole.name.toUpperCase()}</span>
                   </span>
                   <button
@@ -1867,7 +1845,7 @@ export default function App() {
                       marginLeft: "auto",
                       background: "none",
                       border: "none",
-                      color: "#333",
+                      color: "#9ca3af",
                       cursor: "pointer",
                       fontSize: "10px",
                       fontFamily: "'Space Mono', monospace",
@@ -1882,7 +1860,7 @@ export default function App() {
               <div
                 style={{
                   padding: "14px 16px",
-                  borderTop: "1px solid rgba(255,255,255,0.04)",
+                  borderTop: "1px solid #f3f4f6",
                   display: "flex",
                   gap: "8px",
                 }}
@@ -1895,18 +1873,18 @@ export default function App() {
                   disabled={loading}
                   style={{
                     flex: 1,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "#f9fafb",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "8px",
                     padding: "10px 14px",
-                    color: "#e0e0e0",
+                    color: "#1f2937",
                     fontSize: "13px",
                     fontFamily: "'DM Sans', sans-serif",
                     outline: "none",
                     transition: "border-color 0.2s",
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.4)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                  onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
+                  onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
                 />
                 <button
                   onClick={sendMessage}
@@ -1916,15 +1894,15 @@ export default function App() {
                     borderRadius: "8px",
                     border: "none",
                     background:
-                      loading || !input.trim() ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
-                    color: loading || !input.trim() ? "#333" : "#fff",
+                      loading || !input.trim() ? "#f3f4f6" : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
+                    color: loading || !input.trim() ? "#9ca3af" : "#fff",
                     cursor: loading || !input.trim() ? "not-allowed" : "pointer",
                     fontSize: "16px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     transition: "all 0.2s",
-                    boxShadow: !loading && input.trim() ? "0 0 16px rgba(255,107,43,0.4)" : "none",
+                    boxShadow: !loading && input.trim() ? "0 2px 12px rgba(255,107,43,0.3)" : "none",
                   }}
                 >
                   →
@@ -1943,7 +1921,7 @@ export default function App() {
               {!elevenLabsAgentId && (
                 <div style={{
                   padding: "8px 16px 12px",
-                  borderTop: "1px solid rgba(255,255,255,0.04)",
+                  borderTop: "1px solid #f3f4f6",
                   display: "flex",
                   gap: "6px",
                   alignItems: "center",
@@ -1952,11 +1930,11 @@ export default function App() {
                     placeholder="ElevenLabs Agent ID"
                     style={{
                       flex: 1,
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
                       borderRadius: "6px",
                       padding: "6px 10px",
-                      color: "#e0e0e0",
+                      color: "#1f2937",
                       fontSize: "11px",
                       fontFamily: "'Space Mono', monospace",
                       outline: "none",
@@ -1971,7 +1949,7 @@ export default function App() {
                       }
                     }}
                   />
-                  <span style={{ fontSize: "10px", color: "#666", fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ fontSize: "10px", color: "#9ca3af", fontFamily: "'Space Mono', monospace" }}>
                     Press Enter to save
                   </span>
                 </div>
@@ -1981,17 +1959,17 @@ export default function App() {
             {/* Steps Panel */}
             <div
               style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "16px",
                 overflow: "hidden",
-                boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
               }}
             >
               <div
                 style={{
                   padding: "14px 18px",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  borderBottom: "1px solid #f3f4f6",
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
@@ -2002,7 +1980,7 @@ export default function App() {
                   style={{
                     fontFamily: "'Space Mono', monospace",
                     fontSize: "10px",
-                    color: "#666",
+                    color: "#9ca3af",
                     letterSpacing: "0.12em",
                     flex: 1,
                   }}
@@ -2010,7 +1988,7 @@ export default function App() {
                   BUTTON SEQUENCE
                 </span>
                 {steps && (
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#444" }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#9ca3af" }}>
                     {activeStep + 1} / {steps.length}
                   </span>
                 )}
@@ -2026,7 +2004,7 @@ export default function App() {
                       alignItems: "center",
                       justifyContent: "center",
                       gap: "12px",
-                      color: "#1e1e1e",
+                      color: "#d1d5db",
                     }}
                   >
                     <div style={{ fontSize: "48px", opacity: 0.3 }}>◈</div>
@@ -2059,15 +2037,15 @@ export default function App() {
                       }}>
                         <div style={{
                           fontFamily: "'Space Mono', monospace", fontSize: "9px",
-                          letterSpacing: "0.12em", color: "#444",
+                          letterSpacing: "0.12em", color: "#9ca3af",
                         }}>
                           STEP {activeStep + 1} / {steps.length} — {(steps[activeStep]?.zone || "").toUpperCase()}
                         </div>
 
                         {/* Simulated typing input */}
                         <div style={{
-                          background: "rgba(0,0,0,0.4)",
-                          border: "1px solid rgba(255,107,43,0.25)",
+                          background: "#fef7f3",
+                          border: "1px solid rgba(255,107,43,0.2)",
                           borderRadius: "8px",
                           padding: "12px 16px",
                           fontFamily: "'Space Mono', monospace",
@@ -2077,9 +2055,9 @@ export default function App() {
                           display: "flex",
                           alignItems: "center",
                           gap: "8px",
-                          boxShadow: "0 0 20px rgba(255,107,43,0.06), inset 0 1px 0 rgba(255,255,255,0.03)",
+                          boxShadow: "0 2px 8px rgba(255,107,43,0.06)",
                         }}>
-                          <span style={{ color: "#333", userSelect: "none" }}>⌨</span>
+                          <span style={{ color: "#d1d5db", userSelect: "none" }}>⌨</span>
                           <span>{steps[activeStep]?.button.toUpperCase()}</span>
                           <span style={{
                             width: "2px", height: "16px",
@@ -2091,7 +2069,7 @@ export default function App() {
 
                         <div style={{
                           fontFamily: "'DM Sans', sans-serif", fontSize: "13px",
-                          color: "#aaa", lineHeight: 1.5,
+                          color: "#6b7280", lineHeight: 1.5,
                         }}>
                           {steps[activeStep]?.desc}
                         </div>
@@ -2105,7 +2083,7 @@ export default function App() {
                 <div
                   style={{
                     padding: "14px 16px",
-                    borderTop: "1px solid rgba(255,255,255,0.04)",
+                    borderTop: "1px solid #f3f4f6",
                     display: "flex",
                     gap: "8px",
                   }}
@@ -2134,7 +2112,7 @@ export default function App() {
               <div
                 style={{
                   fontSize: "10px",
-                  color: "#2a2a2a",
+                  color: "#9ca3af",
                   fontFamily: "'Space Mono', monospace",
                   letterSpacing: "0.1em",
                   marginBottom: "10px",
@@ -2162,8 +2140,8 @@ export default function App() {
                       padding: "6px 14px",
                       borderRadius: "20px",
                       background: "transparent",
-                      border: "1px solid rgba(255,255,255,0.07)",
-                      color: "#444",
+                      border: "1px solid #e5e7eb",
+                      color: "#6b7280",
                       fontFamily: "'DM Sans', sans-serif",
                       fontSize: "12px",
                       cursor: "pointer",
@@ -2174,8 +2152,8 @@ export default function App() {
                       (e.currentTarget as HTMLElement).style.color = "#FF6B2B";
                     }}
                     onMouseOut={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
-                      (e.currentTarget as HTMLElement).style.color = "#444";
+                      (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb";
+                      (e.currentTarget as HTMLElement).style.color = "#6b7280";
                     }}
                   >
                     {s}
@@ -2192,8 +2170,8 @@ export default function App() {
             {/* Connection Bar */}
             <div
               style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "12px",
                 padding: "14px 20px",
                 display: "flex",
@@ -2208,7 +2186,7 @@ export default function App() {
                   height: "8px",
                   borderRadius: "50%",
                   background: "#22c55e",
-                  boxShadow: "0 0 8px #22c55e",
+                  boxShadow: "none",
                   animation: "pulse-ring 2s infinite",
                   flexShrink: 0,
                 }}
@@ -2217,7 +2195,7 @@ export default function App() {
                 style={{
                   fontFamily: "'Space Mono', monospace",
                   fontSize: "10px",
-                  color: "#444",
+                  color: "#9ca3af",
                   letterSpacing: "0.1em",
                 }}
               >
@@ -2229,11 +2207,11 @@ export default function App() {
                 placeholder="ws://localhost:8080"
                 style={{
                   width: "200px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "#f9fafb",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "6px",
                   padding: "6px 12px",
-                  color: "#ddd",
+                  color: "#1f2937",
                   fontSize: "12px",
                   fontFamily: "'Space Mono', monospace",
                   outline: "none",
@@ -2250,11 +2228,11 @@ export default function App() {
                   placeholder={f.placeholder}
                   style={{
                     width: f.width,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "#f9fafb",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "6px",
                     padding: "6px 12px",
-                    color: "#ddd",
+                    color: "#1f2937",
                     fontSize: "12px",
                     fontFamily: "'Space Mono', monospace",
                     outline: "none",
@@ -2274,7 +2252,7 @@ export default function App() {
                   borderRadius: "6px",
                   border: "none",
                   background: "#FF6B2B",
-                  color: "#000",
+                  color: "#fff",
                   fontFamily: "'Space Mono', monospace",
                   fontSize: "10px",
                   fontWeight: "700",
@@ -2284,7 +2262,7 @@ export default function App() {
               >
                 SAVE
               </button>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#2a2a2a" }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#9ca3af" }}>
                 Bridge: {bridgeUrl} → {oscHost}:{oscPort}
               </span>
 
@@ -2328,21 +2306,21 @@ export default function App() {
 
             {/* ── AI AGENT PROMPT BAR ── */}
             <div
-              className="neon-panel"
               style={{
-                background: "rgba(0,255,200,0.02)",
-                border: "1px solid rgba(0,255,200,0.12)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "14px",
                 padding: "16px 20px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "12px",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
               }}
             >
               {/* Header row */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <span style={{ fontSize: "16px" }}>🤖</span>
-                <span style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "10px", color: "#00ffc8", letterSpacing: "0.12em", flex: 1 }}>
+                <span style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "10px", color: "#FF6B2B", letterSpacing: "0.12em", flex: 1 }}>
                   AI OSC AGENT — VOICE & TEXT TO CONSOLE
                 </span>
                 {/* Preview mode toggle */}
@@ -2353,7 +2331,7 @@ export default function App() {
                   <div
                     style={{
                       width: "32px", height: "16px", borderRadius: "8px",
-                      background: aiOscPreviewMode ? "rgba(255,107,43,0.6)" : "rgba(255,255,255,0.08)",
+                      background: aiOscPreviewMode ? "rgba(255,107,43,0.6)" : "#e5e7eb",
                       position: "relative", transition: "background 0.2s",
                     }}
                   >
@@ -2361,11 +2339,11 @@ export default function App() {
                       position: "absolute", top: "2px",
                       left: aiOscPreviewMode ? "18px" : "2px",
                       width: "12px", height: "12px", borderRadius: "50%",
-                      background: aiOscPreviewMode ? "#FF6B2B" : "#444",
+                      background: aiOscPreviewMode ? "#FF6B2B" : "#9ca3af",
                       transition: "left 0.2s",
                     }} />
                   </div>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#444" }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#9ca3af" }}>
                     PREVIEW
                   </span>
                 </div>
@@ -2377,7 +2355,7 @@ export default function App() {
                   style={{
                     maxHeight: "200px", overflowY: "auto",
                     display: "flex", flexDirection: "column", gap: "8px",
-                    background: "rgba(0,0,0,0.3)", borderRadius: "10px",
+                    background: "#f9fafb", borderRadius: "10px",
                     padding: "12px",
                   }}
                 >
@@ -2391,7 +2369,7 @@ export default function App() {
                         }}>
                           {msg.role === "user" ? "YOU" : "AI"}
                         </span>
-                        <span style={{ fontSize: "12px", color: msg.role === "user" ? "#aaa" : "#e0e0e0", fontFamily: "'DM Sans', sans-serif" }}>
+                        <span style={{ fontSize: "12px", color: msg.role === "user" ? "#6b7280" : "#1f2937", fontFamily: "'DM Sans', sans-serif" }}>
                           {msg.text}
                         </span>
                       </div>
@@ -2413,7 +2391,7 @@ export default function App() {
                                   [{cmd.value}]
                                 </span>
                               )}
-                              <span style={{ fontSize: "10px", color: "#555", fontFamily: "'DM Sans', sans-serif", flex: 1 }}>
+                              <span style={{ fontSize: "10px", color: "#6b7280", fontFamily: "'DM Sans', sans-serif", flex: 1 }}>
                                 — {cmd.description}
                               </span>
                               {/* In preview mode allow manual fire */}
@@ -2523,7 +2501,7 @@ export default function App() {
                   {aiOscLoading && (
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#FF6B2B" }}>AI</span>
-                      <span style={{ fontSize: "11px", color: "#555", fontFamily: "'DM Sans', sans-serif" }}>Thinking...</span>
+                      <span style={{ fontSize: "11px", color: "#9ca3af", fontFamily: "'DM Sans', sans-serif" }}>Thinking...</span>
                       <div style={{ display: "flex", gap: "3px" }}>
                         {[0, 1, 2].map(i => (
                           <div key={i} style={{
@@ -2552,17 +2530,17 @@ export default function App() {
                   disabled={aiOscLoading}
                   style={{
                     flex: 1,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(0,255,200,0.15)",
+                    background: "#f9fafb",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "8px",
                     padding: "10px 14px",
-                    color: "#e0e0e0",
+                    color: "#1f2937",
                     fontSize: "13px",
                     fontFamily: "'DM Sans', sans-serif",
                     outline: "none",
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(0,255,200,0.4)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(0,255,200,0.15)")}
+                  onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
+                  onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
                 />
                 <button
                   onClick={() => { if (!aiOscLoading && aiOscInput.trim()) executeAiOscCommands(aiOscInput); }}
@@ -2572,15 +2550,15 @@ export default function App() {
                     borderRadius: "8px",
                     border: "none",
                     background: aiOscLoading || !aiOscInput.trim()
-                      ? "rgba(255,255,255,0.04)"
-                      : "linear-gradient(135deg, #FF6B2B, #00ffc8)",
-                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#000",
+                      ? "#f3f4f6"
+                      : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
+                    color: aiOscLoading || !aiOscInput.trim() ? "#9ca3af" : "#fff",
                     fontFamily: "'Orbitron', 'Space Mono', monospace",
                     fontSize: "10px",
                     fontWeight: "700",
                     cursor: aiOscLoading || !aiOscInput.trim() ? "not-allowed" : "pointer",
                     letterSpacing: "0.08em",
-                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 20px rgba(0,255,200,0.3)" : "none",
+                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 2px 12px rgba(255,107,43,0.3)" : "none",
                     transition: "all 0.2s",
                   }}
                 >
@@ -2599,8 +2577,8 @@ export default function App() {
                     onClick={() => setAiOscHistory([])}
                     style={{
                       padding: "10px 12px", borderRadius: "8px",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                      background: "transparent", color: "#333",
+                      border: "1px solid #e5e7eb",
+                      background: "transparent", color: "#9ca3af",
                       fontFamily: "'Space Mono', monospace", fontSize: "9px",
                       cursor: "pointer",
                     }}
@@ -2626,8 +2604,8 @@ export default function App() {
                     style={{
                       padding: "4px 12px", borderRadius: "16px",
                       background: "transparent",
-                      border: "1px solid rgba(255,107,43,0.12)",
-                      color: "#555", fontFamily: "'DM Sans', sans-serif",
+                      border: "1px solid #e5e7eb",
+                      color: "#6b7280", fontFamily: "'DM Sans', sans-serif",
                       fontSize: "11px", cursor: "pointer",
                       transition: "all 0.2s",
                     }}
@@ -2636,8 +2614,8 @@ export default function App() {
                       (e.currentTarget as HTMLElement).style.color = "#FF6B2B";
                     }}
                     onMouseOut={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.12)";
-                      (e.currentTarget as HTMLElement).style.color = "#555";
+                      (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb";
+                      (e.currentTarget as HTMLElement).style.color = "#6b7280";
                     }}
                   >
                     {s}
@@ -2650,8 +2628,8 @@ export default function App() {
               {/* Command Tabs */}
               <div
                 style={{
-                  background: "rgba(255,255,255,0.015)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "16px",
                   overflow: "hidden",
                 }}
@@ -2662,7 +2640,7 @@ export default function App() {
                     display: "flex",
                     gap: "2px",
                     padding: "10px 10px 0",
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    borderBottom: "1px solid #f3f4f6",
                     overflowX: "auto",
                   }}
                 >
@@ -2676,7 +2654,7 @@ export default function App() {
                         border: "none",
                         borderBottom: oscTab === t ? "2px solid #FF6B2B" : "2px solid transparent",
                         background: oscTab === t ? "rgba(255,107,43,0.1)" : "transparent",
-                        color: oscTab === t ? "#FF6B2B" : "#444",
+                        color: oscTab === t ? "#FF6B2B" : "#9ca3af",
                         fontFamily: "'Space Mono', monospace",
                         fontSize: "10px",
                         fontWeight: "700",
@@ -2704,8 +2682,8 @@ export default function App() {
                 {/* Custom OSC */}
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.015)",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "14px",
                     padding: "16px",
                   }}
@@ -2713,7 +2691,7 @@ export default function App() {
                   <div
                     style={{
                       fontSize: "10px",
-                      color: "#444",
+                      color: "#9ca3af",
                       fontFamily: "'Space Mono', monospace",
                       letterSpacing: "0.1em",
                       marginBottom: "12px",
@@ -2727,18 +2705,18 @@ export default function App() {
                     placeholder="/eos/chan/1/param/intensity"
                     style={{
                       width: "100%",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
                       borderRadius: "7px",
                       padding: "9px 12px",
-                      color: "#ddd",
+                      color: "#1f2937",
                       fontSize: "12px",
                       fontFamily: "'Space Mono', monospace",
                       outline: "none",
                       marginBottom: "8px",
                     }}
-                    onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.4)")}
-                    onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                    onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
+                    onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
                   />
                   <div style={{ display: "flex", gap: "8px" }}>
                     <input
@@ -2748,17 +2726,17 @@ export default function App() {
                       onKeyDown={(e) => e.key === "Enter" && customPath && sendOsc(customPath, customVal || undefined)}
                       style={{
                         flex: 1,
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        background: "#f9fafb",
+                        border: "1px solid #e5e7eb",
                         borderRadius: "7px",
                         padding: "9px 12px",
-                        color: "#ddd",
+                        color: "#1f2937",
                         fontSize: "12px",
                         fontFamily: "'Space Mono', monospace",
                         outline: "none",
                       }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.4)")}
-                      onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                      onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
+                      onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
                     />
                     <GlowButton
                       onClick={() => {
@@ -2780,8 +2758,8 @@ export default function App() {
                 <div
                   style={{
                     flex: 1,
-                    background: "rgba(255,255,255,0.015)",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "14px",
                     padding: "16px",
                     minHeight: "200px",
@@ -2804,12 +2782,11 @@ export default function App() {
           textAlign: "center",
           padding: "24px",
           marginTop: "20px",
-          borderTop: "1px solid rgba(0,255,200,0.05)",
+          borderTop: "1px solid #e5e7eb",
         }}
       >
         <div
-          className="holo-text"
-          style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "9px", letterSpacing: "0.25em" }}
+          style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "9px", letterSpacing: "0.25em", color: "#FF6B2B" }}
         >
           EOS AI CONSOLE INTELLIGENCE — BUILT WITH ⚡ FOR THE LIGHTING COMMUNITY
         </div>
