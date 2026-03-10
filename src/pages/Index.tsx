@@ -2170,8 +2170,8 @@ export default function App() {
             {/* Connection Bar */}
             <div
               style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "12px",
                 padding: "14px 20px",
                 display: "flex",
