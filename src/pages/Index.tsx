@@ -1765,32 +1765,55 @@ export default function App() {
 
                 {/* Console selector pills */}
                 {showConsoleSelect && (
-                  <div className="msg-in" style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  <div className="msg-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "8px" }}>
                     {CONSOLES.map((c) => (
                       <button
                         key={c.id}
                         onClick={() => handleConsoleSelect(c)}
                         style={{
-                          padding: "6px 14px",
-                          borderRadius: "20px",
-                          background: "rgba(255,107,43,0.08)",
-                          border: "1px solid rgba(255,107,43,0.3)",
-                          color: "#FF6B2B",
-                          fontFamily: "'Space Mono', monospace",
-                          fontSize: "11px",
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
+                          padding: "10px 8px",
+                          borderRadius: "12px",
+                          background: "rgba(255,107,43,0.04)",
+                          border: "1px solid rgba(255,107,43,0.15)",
                           cursor: "pointer",
-                          transition: "all 0.2s",
+                          transition: "all 0.25s",
                         }}
                         onMouseOver={(e) => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.2)";
-                          (e.currentTarget as HTMLElement).style.transform = "scale(1.05)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.12)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.5)";
+                          (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
                         }}
                         onMouseOut={(e) => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.08)";
-                          (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(255,107,43,0.04)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,43,0.15)";
+                          (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                         }}
                       >
-                        {c.name}
+                        {(c as any).img && (
+                          <img
+                            src={(c as any).img}
+                            alt={c.name}
+                            style={{
+                              width: "100%", height: "60px",
+                              objectFit: "contain",
+                              borderRadius: "6px",
+                              opacity: 0.85,
+                            }}
+                          />
+                        )}
+                        <span style={{
+                          fontFamily: "'Space Mono', monospace", fontSize: "10px",
+                          color: c.color, fontWeight: 700, letterSpacing: "0.05em",
+                        }}>
+                          {c.name}
+                        </span>
+                        <span style={{
+                          fontFamily: "'DM Sans', sans-serif", fontSize: "9px",
+                          color: "#555",
+                        }}>
+                          {c.desc}
+                        </span>
                       </button>
                     ))}
                   </div>
