@@ -2354,6 +2354,7 @@ export default function App() {
                             </div>
                           ))}
                         </div>
+                      )}
                       {/* Disambiguation choices */}
                       {msg.choices && msg.choices.length > 0 && (
                         <div style={{ paddingLeft: "30px", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
