@@ -1416,13 +1416,22 @@ export default function App() {
     const txt = input.trim();
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text: txt }]);
-    // Always ask which console before generating a guide
-    setPendingPrompt(txt);
-    setShowConsoleSelect(true);
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", text: "Which console are you working with?", type: "console-select" },
-    ]);
+    if (selectedConsole) {
+      // Console already selected — generate guide directly
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: `Generating your guide for **${selectedConsole.name}**...`, type: "loading" },
+      ]);
+      await fetchSteps(txt, selectedConsole.name);
+    } else {
+      // No console yet — ask first
+      setPendingPrompt(txt);
+      setShowConsoleSelect(true);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Which console are you working with?", type: "console-select" },
+      ]);
+    }
   };
 
   const handleConsoleSelect = async (con) => {
