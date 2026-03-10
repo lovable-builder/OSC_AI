@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { FIXTURES, MANUFACTURERS, FIXTURE_CATEGORIES, type Fixture, type FixtureMode } from "@/data/fixtures";
 import { validatePatchAddress, getNextAvailableDMXAddress, getAddressStatus } from "@/lib/patchingUtils";
+import { loadEOSFixtures, searchEOSFixtures, type EOSFixture } from "@/lib/eosFixtureParser";
 import {
   createTransaction,
   buildUnpatchCommands,
@@ -90,6 +91,29 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
   const [filterManufacturer, setFilterManufacturer] = useState("All");
   const [filterCategory, setFilterCategory] = useState("All");
 
+  // EOS Library tab
+  const [libraryMode, setLibraryMode] = useState<"curated" | "eos">("curated");
+  const [eosFixtures, setEosFixtures] = useState<EOSFixture[]>([]);
+  const [eosLoading, setEosLoading] = useState(false);
+  const [eosSearch, setEosSearch] = useState("");
+  const [selectedEos, setSelectedEos] = useState<EOSFixture | null>(null);
+
+  // Load EOS fixtures when switching to EOS tab
+  useEffect(() => {
+    if (libraryMode === "eos" && eosFixtures.length === 0 && !eosLoading) {
+      setEosLoading(true);
+      loadEOSFixtures().then((fixtures) => {
+        setEosFixtures(fixtures);
+        setEosLoading(false);
+      });
+    }
+  }, [libraryMode]);
+
+  const filteredEos = useMemo(() => {
+    if (eosFixtures.length === 0) return [];
+    return searchEOSFixtures(eosFixtures, eosSearch, 100);
+  }, [eosFixtures, eosSearch]);
+
   // Selected fixture
   const [selected, setSelected] = useState<Fixture | null>(null);
   const [selectedMode, setSelectedMode] = useState<FixtureMode | null>(null);
@@ -146,6 +170,7 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
   // Step 1: Auto-detect single mode
   const selectFixture = (f: Fixture) => {
     setSelected(f);
+    setSelectedEos(null);
     setFixtureLabel(f.model);
     if (f.modes.length === 1) {
       setSelectedMode(f.modes[0]);
@@ -154,6 +179,24 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
       setSelectedMode(f.modes[0]);
       setAutoModeSelected(false);
     }
+  };
+
+  // Select an EOS library fixture
+  const selectEosFixture = (ef: EOSFixture) => {
+    setSelectedEos(ef);
+    // Create a synthetic Fixture from the EOS entry
+    const syntheticFixture: Fixture = {
+      id: `eos-${ef.t}`,
+      manufacturer: ef.m,
+      model: ef.n || ef.t.replace(/_/g, " "),
+      category: "Wash" as any,
+      description: `EOS Type: ${ef.t} — ${ef.ch} DMX channel(s)`,
+      modes: [{ name: ef.t, channels: ef.ch, channelMap: Array.from({ length: ef.ch }, (_, i) => `Ch ${i + 1}`) }],
+    };
+    setSelected(syntheticFixture);
+    setSelectedMode(syntheticFixture.modes[0]);
+    setAutoModeSelected(true);
+    setFixtureLabel(ef.n || ef.t.replace(/_/g, " "));
   };
 
   // DMX address status indicator
@@ -228,6 +271,9 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
     onPatch("/eos/key/patch");
 
     setTimeout(() => {
+      const eosTypeString = selectedEos?.t || null;
+      let cmdIndex = 0;
+
       for (let i = 0; i < qty; i++) {
         const ch = startCh + i;
         const addr = dmx + i * chPerFixture;
@@ -245,9 +291,21 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
         newEntries.push(entry);
         txPatches.push({ channel: ch, universe: uni, dmxAddress: addr, fixture: selected.model, label: entryLabel });
 
+        // Address command
+        const addrDelay = cmdIndex * 200;
         setTimeout(() => {
           onPatch("/eos/newcmd", `Chan ${ch} Address ${uni}/${addr} Enter`);
-        }, i * 200);
+        }, addrDelay);
+        cmdIndex++;
+
+        // Type command (separate, using exact EOS type string)
+        if (eosTypeString) {
+          const typeDelay = cmdIndex * 200;
+          setTimeout(() => {
+            onPatch("/eos/newcmd", `Chan ${ch} Type ${eosTypeString} Enter`);
+          }, typeDelay);
+          cmdIndex++;
+        }
       }
 
       setPatchList((prev) => [...prev, ...newEntries]);
@@ -255,14 +313,20 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
       // Save transaction
       tx.patches = txPatches;
       tx.status = "completed";
-      tx.commands = txPatches.map((p) => ({ path: "/eos/newcmd", value: `Chan ${p.channel} Address ${p.universe}/${p.dmxAddress} Enter` }));
+      const cmds = txPatches.map((p) => ({ path: "/eos/newcmd", value: `Chan ${p.channel} Address ${p.universe}/${p.dmxAddress} Enter` }));
+      if (eosTypeString) {
+        txPatches.forEach((p) => {
+          cmds.push({ path: "/eos/newcmd", value: `Chan ${p.channel} Type ${eosTypeString} Enter` });
+        });
+      }
+      tx.commands = cmds;
       saveTransaction(tx);
       setTransactions(loadTransactions());
 
       // Return to Live mode
       setTimeout(() => {
         onPatch("/eos/key/live");
-      }, qty * 200 + 500);
+      }, cmdIndex * 200 + 500);
     }, 400);
   };
 
@@ -512,11 +576,137 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
         {/* ── Fixture List ── */}
         <div style={panelStyle}>
           <div style={headerBarStyle}>
-            <span style={labelStyle}>FIXTURE LIBRARY</span>
+            {/* Toggle between curated and EOS library */}
+            <div style={{ display: "flex", gap: "0", borderRadius: "6px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <button
+                onClick={() => setLibraryMode("curated")}
+                style={{
+                  padding: "5px 12px",
+                  border: "none",
+                  background: libraryMode === "curated" ? "rgba(255,107,43,0.2)" : "rgba(255,255,255,0.03)",
+                  color: libraryMode === "curated" ? "#FF6B2B" : "#666",
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                CURATED
+              </button>
+              <button
+                onClick={() => setLibraryMode("eos")}
+                style={{
+                  padding: "5px 12px",
+                  border: "none",
+                  borderLeft: "1px solid rgba(255,255,255,0.1)",
+                  background: libraryMode === "eos" ? "rgba(139,92,246,0.2)" : "rgba(255,255,255,0.03)",
+                  color: libraryMode === "eos" ? "#a78bfa" : "#666",
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                EOS LIBRARY
+              </button>
+            </div>
             <span style={{ ...monoSmall, color: "#444", fontSize: "10px", marginLeft: "auto" }}>
-              {FIXTURES.length} total
+              {libraryMode === "curated" ? `${FIXTURES.length} total` : eosLoading ? "Loading..." : `${eosFixtures.length} fixtures`}
             </span>
           </div>
+
+          {libraryMode === "eos" ? (
+            /* ── EOS Official Library ── */
+            <div>
+              <div style={{ padding: "8px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <input
+                  value={eosSearch}
+                  onChange={(e) => setEosSearch(e.target.value)}
+                  placeholder="Search EOS fixtures (e.g. Source Four, MAC Aura)..."
+                  style={{ ...inputStyle, width: "100%" }}
+                  onFocus={(e) => (e.target.style.borderColor = "#a78bfa88")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                />
+              </div>
+              {eosLoading ? (
+                <div style={{ padding: "40px", textAlign: "center", color: "#555", fontFamily: "'Space Mono', monospace", fontSize: "11px" }}>
+                  ⏳ Loading official EOS fixture library...
+                </div>
+              ) : (
+                <div style={{ maxHeight: "500px", overflowY: "auto", padding: "8px" }}>
+                  {filteredEos.length === 0 && (
+                    <div style={{ padding: "40px", textAlign: "center", color: "#333", fontFamily: "'Space Mono', monospace", fontSize: "12px" }}>
+                      {eosSearch ? "No fixtures match your search." : "Type to search the EOS fixture library."}
+                    </div>
+                  )}
+                  {filteredEos.map((ef, idx) => (
+                    <div
+                      key={`${ef.t}-${idx}`}
+                      onClick={() => selectEosFixture(ef)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        background: selectedEos?.t === ef.t ? "rgba(139,92,246,0.12)" : "transparent",
+                        border: `1px solid ${selectedEos?.t === ef.t ? "rgba(139,92,246,0.4)" : "transparent"}`,
+                        marginBottom: "2px",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedEos?.t !== ef.t) e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedEos?.t !== ef.t) e.currentTarget.style.background = "transparent";
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          background: "rgba(139,92,246,0.1)",
+                          border: "1px solid rgba(139,92,246,0.2)",
+                          fontFamily: "'Space Mono', monospace",
+                          fontSize: "8px",
+                          color: "#a78bfa",
+                          whiteSpace: "nowrap",
+                          minWidth: "35px",
+                          textAlign: "center",
+                        }}
+                      >
+                        {ef.ch}ch
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                          <span style={{ ...monoSmall, fontWeight: "700", color: selectedEos?.t === ef.t ? "#a78bfa" : "#ccc" }}>
+                            {ef.n || ef.t.replace(/_/g, " ")}
+                          </span>
+                          <span style={{ fontSize: "10px", color: "#555", fontFamily: "'DM Sans', sans-serif" }}>
+                            {ef.m}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "9px", color: "#444", fontFamily: "'Space Mono', monospace", marginTop: "1px" }}>
+                          Type: {ef.t}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredEos.length >= 100 && (
+                    <div style={{ padding: "8px", textAlign: "center", color: "#555", fontFamily: "'Space Mono', monospace", fontSize: "10px" }}>
+                      Showing first 100 results. Refine your search for more.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── Curated Fixture Library (original) ── */
+            <>
+
           <div style={{ maxHeight: "500px", overflowY: "auto", padding: "8px" }}>
             {filtered.length === 0 && (
               <div
@@ -616,6 +806,8 @@ export default function FixtureLibrary({ onPatch, onRequestPatch, consolePatch =
               </div>
             ))}
           </div>
+            </>
+          )}
         </div>
 
         {/* ── Right Panel: Detail + Patch ── */}
