@@ -2436,8 +2436,8 @@ export default function App() {
                                     role: "user",
                                     text: `✓ Selected: ${choice.label}`,
                                   }]);
-                                  // Execute with the rewritten prompt (skip duplicate user message)
-                                  executeAiOscCommands(choice.originalPrompt, true);
+                                  // Execute with the rewritten prompt, passing the exact fixture type to skip re-disambiguation
+                                  executeAiOscCommands(choice.originalPrompt, true, choice.fixtureType);
                                 }}
                                 style={{
                                   display: "flex", alignItems: "center", gap: "10px",
