@@ -34,16 +34,15 @@ Effects:
 - Record FX: /eos/newcmd "Effect {a} Record Enter"
 
 Patching (IMPORTANT: Address and Type are SEPARATE commands. NEVER combine them in one newcmd.):
-For ANY patching command, ALWAYS wrap with /eos/key/patch and /eos/key/live:
+For ANY patching command, start by entering patch mode with /eos/key/patch:
   1. { "path": "/eos/key/patch", "description": "Enter patch mode" }
   2. One or more /eos/newcmd commands (each on its own line)
-  3. { "path": "/eos/key/live", "description": "Return to live mode" }
+Do NOT auto-return to live mode after patching. Only send /eos/key/live if the user explicitly asks.
 
-When patching with BOTH address AND type, return 4 commands:
+When patching with BOTH address AND type, return 3 commands:
   1. /eos/key/patch
   2. /eos/newcmd "Chan {a} Address {b} Enter"
   3. /eos/newcmd "Chan {a} Type {c} Enter"
-  4. /eos/key/live
 
 - Address: /eos/newcmd "Chan {a} Address {b} Enter"
 - Type: /eos/newcmd "Chan {a} Type {b} Enter"

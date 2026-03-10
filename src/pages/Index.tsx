@@ -1308,7 +1308,7 @@ export default function App() {
         commands 
       }]);
       
-      // Patch-mode safety net: detect patch-related newcmd values and wrap with /eos/key/patch + /eos/key/live
+      // Patch-mode safety net: prepend /eos/key/patch if patch commands detected but no patch key present
       const patchPattern = /\b(Address|Type|Unpatch)\b/i;
       const hasPatchCommands = commands.some((cmd: any) => 
         cmd.path === "/eos/newcmd" && patchPattern.test(cmd.value || "")
@@ -1320,7 +1320,6 @@ export default function App() {
         finalCommands = [
           { path: "/eos/key/patch", description: "Enter patch mode" },
           ...commands,
-          { path: "/eos/key/live", description: "Return to live mode" },
         ];
       }
       
