@@ -1,39 +1,31 @@
 
 
-# Plan: Implement ETC Console AI Main Component
+# Fix: Choice Selection Feedback + Execution Visibility
 
-## What happened
-You pasted a large single-file React component for the ETC Console AI app, but **the code is truncated** — it cuts off mid-render inside the "LIVE STAGE" module at `{channels.filter(c => c.in`. The component cannot be implemented as-is because the JSX is incomplete.
+## Problems
+1. After clicking a disambiguation choice, the choice buttons remain visible/active — no visual indication of which was selected
+2. The `executeAiOscCommands` re-adds a full user prompt line (line 1173) which is redundant after the "Selected: X" feedback
+3. The choices persist in the UI even after selection, making it confusing
 
-## What I can see
-The pasted code contains:
-- **ParticleField** — canvas-based animated background
-- **SpectrumBar** — audio-style visualizer bars
-- **GlowButton** — styled button with glow effects
-- **StepCard** — console instruction step cards
-- **OscCard** — OSC command sender cards
-- **FixtureGrid** — channel color/intensity visualizer
-- **CueStack** — cue list with active highlight
-- **CommandLog** — scrollable OSC command log
-- **Main App** — three modules: AI Guide, OSC Control, Live Stage
+## Solution
 
-All use inline styles (no Tailwind), and the AI Guide calls the Anthropic API directly from the client (which exposes the API key — should use Lovable AI via edge function instead).
+### In `src/pages/Index.tsx`:
 
-## Issues to resolve before implementing
+**A. Track selected state on disambiguation messages**
+- Add an optional `selectedChoice?: string` field to the history entry type
+- When a choice is clicked, mutate the original disambiguation message to set `selectedChoice` to the chosen `fixtureType`, which visually highlights the selected one and disables all buttons
 
-1. **Incomplete code** — The "LIVE STAGE" module JSX is cut off. I need the rest of the component to implement it fully.
-2. **JSX syntax** — The pasted code has bare `<div>` tags without className/style attributes in many places (likely stripped during copy). This will need reconstruction.
-3. **Direct Anthropic API call** — The `fetchSteps` function calls `api.anthropic.com` directly from the browser, which is insecure and won't work due to CORS. Should be routed through Lovable AI (edge function).
+**B. Skip duplicate user message on re-execution**
+- When clicking a choice, the handler already adds "Selected: X" as a user message. But then `executeAiOscCommands` adds ANOTHER user message with the full rewritten prompt (line 1173). 
+- Add an optional `skipUserMessage` parameter to `executeAiOscCommands` so the choice click path skips the redundant entry
 
-## Proposed approach (once complete code is provided)
+**C. Visual feedback on choices**
+- After selection: highlight the chosen button in green, grey out the others, disable all clicks
+- Show a checkmark on the selected choice
 
-1. **Create `src/pages/Index.tsx`** — Convert the full component into a properly typed TypeScript React component
-2. **Split into sub-components** — Place helpers (ParticleField, GlowButton, StepCard, OscCard, etc.) into `src/components/` files
-3. **Replace Anthropic direct call** — Use Lovable AI gateway via an edge function for the AI Guide module
-4. **Load fonts** — Add Google Fonts link to `index.html` for Space Mono and DM Sans
-5. **Update CSS** — Set dark background in `index.css`
+### Files
 
-## Next step
-
-**Please paste the remaining portion of the component** (from the Live Stage module onward through the closing of the App component) so I can implement the complete application.
+| File | Change |
+|------|--------|
+| `src/pages/Index.tsx` | Add `selectedChoice` to history type, update choice click handler to mark selection, add `skipUserMessage` param to `executeAiOscCommands`, update choice rendering to show selected/disabled states |
 
