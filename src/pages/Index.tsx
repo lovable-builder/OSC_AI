@@ -1921,7 +1921,7 @@ export default function App() {
               {!elevenLabsAgentId && (
                 <div style={{
                   padding: "8px 16px 12px",
-                  borderTop: "1px solid rgba(255,255,255,0.04)",
+                  borderTop: "1px solid #f3f4f6",
                   display: "flex",
                   gap: "6px",
                   alignItems: "center",
@@ -1930,11 +1930,11 @@ export default function App() {
                     placeholder="ElevenLabs Agent ID"
                     style={{
                       flex: 1,
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
                       borderRadius: "6px",
                       padding: "6px 10px",
-                      color: "#e0e0e0",
+                      color: "#1f2937",
                       fontSize: "11px",
                       fontFamily: "'Space Mono', monospace",
                       outline: "none",
@@ -1949,7 +1949,7 @@ export default function App() {
                       }
                     }}
                   />
-                  <span style={{ fontSize: "10px", color: "#666", fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ fontSize: "10px", color: "#9ca3af", fontFamily: "'Space Mono', monospace" }}>
                     Press Enter to save
                   </span>
                 </div>
