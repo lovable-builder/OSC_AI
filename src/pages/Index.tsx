@@ -2550,15 +2550,15 @@ export default function App() {
                     borderRadius: "8px",
                     border: "none",
                     background: aiOscLoading || !aiOscInput.trim()
-                      ? "rgba(255,255,255,0.04)"
-                      : "linear-gradient(135deg, #FF6B2B, #00ffc8)",
-                    color: aiOscLoading || !aiOscInput.trim() ? "#333" : "#000",
+                      ? "#f3f4f6"
+                      : "linear-gradient(135deg, #FF6B2B, #FF3D00)",
+                    color: aiOscLoading || !aiOscInput.trim() ? "#9ca3af" : "#fff",
                     fontFamily: "'Orbitron', 'Space Mono', monospace",
                     fontSize: "10px",
                     fontWeight: "700",
                     cursor: aiOscLoading || !aiOscInput.trim() ? "not-allowed" : "pointer",
                     letterSpacing: "0.08em",
-                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 0 20px rgba(0,255,200,0.3)" : "none",
+                    boxShadow: !aiOscLoading && aiOscInput.trim() ? "0 2px 12px rgba(255,107,43,0.3)" : "none",
                     transition: "all 0.2s",
                   }}
                 >
