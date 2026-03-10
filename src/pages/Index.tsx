@@ -1214,14 +1214,47 @@ export default function App() {
         }
       }
 
-      // Fuzzy match fixture type from prompt for context
+      // Disambiguation: check if prompt mentions a fixture type and find matches
       let resolvedFixtureType: string | undefined;
       try {
         const eosFixtures = await loadEOSFixtures();
         if (eosFixtures.length > 0) {
-          const fixtureMatch = fuzzyMatchFixture(eosFixtures, prompt);
-          if (fixtureMatch) {
-            resolvedFixtureType = fixtureMatch.t;
+          const typeQuery = extractFixtureTypeFromPrompt(prompt);
+          if (typeQuery) {
+            const matches = fuzzyMatchFixtures(eosFixtures, typeQuery, 8);
+            
+            if (matches.length === 0) {
+              // No matches — let AI handle it as-is
+            } else if (matches.length === 1 || (matches[0].score > 0.8 && (matches.length === 1 || matches[0].score - matches[1].score > 0.2))) {
+              // Single confident match — use it directly
+              resolvedFixtureType = matches[0].t;
+            } else {
+              // Multiple close matches — show disambiguation choices
+              const choices = matches.slice(0, 6).map(m => ({
+                label: `${m.m}: ${m.n} (${m.ch}ch)`,
+                fixtureType: m.t,
+                dmxChannels: m.ch,
+                originalPrompt: prompt.replace(
+                  new RegExp(typeQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
+                  m.t
+                ),
+              }));
+              
+              setAiOscHistory(prev => [...prev, {
+                role: "assistant",
+                text: `I found ${matches.length} fixture types matching "${typeQuery}". Which one did you mean?`,
+                choices,
+              }]);
+              setAiOscLoading(false);
+              setAiOscInput("");
+              return;
+            }
+          } else {
+            // No explicit type mention — try general fuzzy match
+            const fixtureMatch = fuzzyMatchFixture(eosFixtures, prompt);
+            if (fixtureMatch) {
+              resolvedFixtureType = fixtureMatch.t;
+            }
           }
         }
       } catch { /* ignore */ }
