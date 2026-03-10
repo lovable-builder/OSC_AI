@@ -1000,19 +1000,12 @@ export default function App() {
     }
   }, []);
 
-  // Handler for incoming bridge messages — buffers and flushes every 150ms
+  // Handler for incoming bridge messages — flush immediately for zero UI lag
   const handleBridgeMessage = useCallback((event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
       msgBufferRef.current.push(data);
-
-      // Schedule flush if not already pending
-      if (!flushTimerRef.current) {
-        flushTimerRef.current = setTimeout(() => {
-          flushTimerRef.current = null;
-          flushMessages();
-        }, 150);
-      }
+      flushMessages();
     } catch {
       // not JSON or unrecognized — ignore
     }
