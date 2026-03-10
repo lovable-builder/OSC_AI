@@ -1153,7 +1153,7 @@ export default function App() {
   }, [oscHost, oscPort]);
 
   // Execute AI OSC commands — with preset macro interception
-  const executeAiOscCommands = useCallback(async (prompt: string, skipUserMessage = false) => {
+  const executeAiOscCommands = useCallback(async (prompt: string, skipUserMessage = false, forceFixtureType?: string) => {
     if (!prompt.trim()) return;
     
     setAiOscLoading(true);
