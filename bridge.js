@@ -29,6 +29,10 @@ const clients = new Set();
 
 function withUserPath(path) {
   if (path.startsWith("/eos/user/")) return path;
+  // EOS GET, ping, and key paths are global (must NOT be user-prefixed)
+  if (path.startsWith("/eos/get/")) return path;
+  if (path.startsWith("/eos/ping")) return path;
+  if (path.startsWith("/eos/key/")) return path;
   if (path.startsWith("/eos")) return `/eos/user/${EOS_USER}${path.slice(4)}`;
   return path;
 }
