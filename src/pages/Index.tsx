@@ -2726,17 +2726,17 @@ export default function App() {
                       onKeyDown={(e) => e.key === "Enter" && customPath && sendOsc(customPath, customVal || undefined)}
                       style={{
                         flex: 1,
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        background: "#f9fafb",
+                        border: "1px solid #e5e7eb",
                         borderRadius: "7px",
                         padding: "9px 12px",
-                        color: "#ddd",
+                        color: "#1f2937",
                         fontSize: "12px",
                         fontFamily: "'Space Mono', monospace",
                         outline: "none",
                       }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,43,0.4)")}
-                      onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                      onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
+                      onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
                     />
                     <GlowButton
                       onClick={() => {
