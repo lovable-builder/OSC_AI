@@ -2501,7 +2501,7 @@ export default function App() {
                   {aiOscLoading && (
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: "#FF6B2B" }}>AI</span>
-                      <span style={{ fontSize: "11px", color: "#555", fontFamily: "'DM Sans', sans-serif" }}>Thinking...</span>
+                      <span style={{ fontSize: "11px", color: "#9ca3af", fontFamily: "'DM Sans', sans-serif" }}>Thinking...</span>
                       <div style={{ display: "flex", gap: "3px" }}>
                         {[0, 1, 2].map(i => (
                           <div key={i} style={{
