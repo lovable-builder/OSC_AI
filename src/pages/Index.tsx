@@ -1652,11 +1652,11 @@ export default function App() {
             {/* Chat Panel */}
             <div
               style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "16px",
                 overflow: "hidden",
-                boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
               }}
             >
               {/* Panel Header */}
