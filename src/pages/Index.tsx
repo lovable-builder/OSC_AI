@@ -2782,12 +2782,11 @@ export default function App() {
           textAlign: "center",
           padding: "24px",
           marginTop: "20px",
-          borderTop: "1px solid rgba(0,255,200,0.05)",
+          borderTop: "1px solid #e5e7eb",
         }}
       >
         <div
-          className="holo-text"
-          style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "9px", letterSpacing: "0.25em" }}
+          style={{ fontFamily: "'Orbitron', 'Space Mono', monospace", fontSize: "9px", letterSpacing: "0.25em", color: "#FF6B2B" }}
         >
           EOS AI CONSOLE INTELLIGENCE — BUILT WITH ⚡ FOR THE LIGHTING COMMUNITY
         </div>
