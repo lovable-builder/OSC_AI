@@ -1235,47 +1235,8 @@ export default function App() {
               activeCue: consoleFeedback.activeCue,
               consoleOnline: consoleFeedback.consoleOnline,
               channelCount: consoleFeedback.channelCount,
-              fixtureType: resolvedFixtureType,
             }
           }),
-        }
-      );
-      
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${res.status}`);
-      }
-      
-      const data = await res.json();
-      let commands: Array<{ path: string; value?: string; description: string }> = data.commands || [];
-      
-      // Safety net: split combined "Chan X Address Y Type Z Enter" into two separate commands
-      commands = commands.flatMap((cmd: any) => {
-        if (cmd.path === '/eos/newcmd' && cmd.value) {
-          const match = cmd.value.match(/^(Chan\s+\d+)\s+Address\s+(\S+)\s+Type\s+(.+?)\s+Enter$/i);
-          if (match) {
-            return [
-              { path: '/eos/newcmd', value: `${match[1]} Address ${match[2]} Enter`, description: `Patch address ${match[2]}` },
-              { path: '/eos/newcmd', value: `${match[1]} Type ${match[3]} Enter`, description: `Set type ${match[3]}` },
-            ];
-          }
-        }
-        return [cmd];
-      });
-
-      // If we resolved fixture type from official library, enforce it in any Type command
-      if (resolvedFixtureType) {
-        commands = commands.map((cmd: any) => {
-          if (cmd.path !== "/eos/newcmd" || typeof cmd.value !== "string") return cmd;
-          const typeMatch = cmd.value.match(/^(Chan\s+\d+\s+Type\s+)(.+?)(\s+Enter)$/i);
-          if (!typeMatch) return cmd;
-          return {
-            ...cmd,
-            value: `${typeMatch[1]}${resolvedFixtureType}${typeMatch[3]}`,
-            description: `Set channel fixture type to ${resolvedFixtureType}`,
-          };
-        });
-      }
       
       setAiOscHistory(prev => [...prev, { 
         role: "assistant", 
