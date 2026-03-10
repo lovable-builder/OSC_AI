@@ -2015,31 +2015,64 @@ export default function App() {
                 )}
                 {steps && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <ConsoleSteps3D
-                      steps={steps}
-                      activeIndex={activeStep}
-                      onActiveIndexChange={setActiveStep}
-                      height={260}
-                      className="rounded-xl"
-                    />
+                    {/* Single 3D button + command input side by side */}
+                    <div style={{ display: "flex", gap: "16px", alignItems: "stretch" }}>
+                      {/* Single 3D button for active step */}
+                      <div style={{ flex: "0 0 180px" }}>
+                        <ConsoleSteps3D
+                          steps={[steps[activeStep]]}
+                          activeIndex={0}
+                          height={140}
+                          className="rounded-xl"
+                        />
+                      </div>
 
-                    {/* Active step info (keeps the descriptive text you had under each button) */}
-                    <div
-                      style={{
-                        padding: "10px 12px",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        background: "rgba(0,0,0,0.22)",
+                      {/* Command typing input display */}
+                      <div style={{
+                        flex: 1,
                         display: "flex",
                         flexDirection: "column",
-                        gap: "4px",
-                      }}
-                    >
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", letterSpacing: "0.12em", color: "#666" }}>
-                        {(steps[activeStep]?.zone || "").toUpperCase()}
-                      </div>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "13px", color: "#cfcfcf" }}>
-                        {steps[activeStep]?.desc}
+                        justifyContent: "center",
+                        gap: "10px",
+                      }}>
+                        <div style={{
+                          fontFamily: "'Space Mono', monospace", fontSize: "9px",
+                          letterSpacing: "0.12em", color: "#444",
+                        }}>
+                          STEP {activeStep + 1} / {steps.length} — {(steps[activeStep]?.zone || "").toUpperCase()}
+                        </div>
+
+                        {/* Simulated typing input */}
+                        <div style={{
+                          background: "rgba(0,0,0,0.4)",
+                          border: "1px solid rgba(255,107,43,0.25)",
+                          borderRadius: "8px",
+                          padding: "12px 16px",
+                          fontFamily: "'Space Mono', monospace",
+                          fontSize: "14px",
+                          color: "#FF6B2B",
+                          letterSpacing: "0.04em",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          boxShadow: "0 0 20px rgba(255,107,43,0.06), inset 0 1px 0 rgba(255,255,255,0.03)",
+                        }}>
+                          <span style={{ color: "#333", userSelect: "none" }}>⌨</span>
+                          <span>{steps[activeStep]?.button.toUpperCase()}</span>
+                          <span style={{
+                            width: "2px", height: "16px",
+                            background: "#FF6B2B",
+                            animation: "shimmer 1s infinite",
+                            marginLeft: "2px",
+                          }} />
+                        </div>
+
+                        <div style={{
+                          fontFamily: "'DM Sans', sans-serif", fontSize: "13px",
+                          color: "#aaa", lineHeight: 1.5,
+                        }}>
+                          {steps[activeStep]?.desc}
+                        </div>
                       </div>
                     </div>
                   </div>
