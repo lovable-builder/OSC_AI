@@ -106,7 +106,7 @@ const STEP_COLORS = {
   soft: "#EAB308",
 };
 
-// ── PARTICLES BACKGROUND ───────────────────────────────────────────────────────
+// ── PARTICLES BACKGROUND (light) ───────────────────────────────────────────────
 function ParticleField() {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -114,14 +114,14 @@ function ParticleField() {
     const ctx = canvas.getContext("2d");
     let W = (canvas.width = window.innerWidth);
     let H = (canvas.height = window.innerHeight);
-    const particles = Array.from({ length: 100 }, () => ({
+    const particles = Array.from({ length: 50 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 1.5 + 0.5,
-      alpha: Math.random() * 0.5 + 0.1,
-      color: Math.random() > 0.6 ? "#00ffc8" : Math.random() > 0.5 ? "#FF6B2B" : "#ffffff",
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.2 + 0.3,
+      alpha: Math.random() * 0.12 + 0.03,
+      color: Math.random() > 0.5 ? "#FF6B2B" : "#c4c4c4",
     }));
     let frame;
     const draw = () => {
@@ -135,21 +135,17 @@ function ParticleField() {
         if (p.y > H) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle =
-          p.color +
-          Math.floor(p.alpha * 255)
-            .toString(16)
-            .padStart(2, "0");
+        ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2, "0");
         ctx.fill();
       });
       particles.forEach((p, i) => {
         particles.slice(i + 1).forEach((q) => {
           const d = Math.hypot(p.x - q.x, p.y - q.y);
-          if (d < 140) {
+          if (d < 120) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(0,255,200,${0.06 * (1 - d / 140)})`;
+            ctx.strokeStyle = `rgba(255,107,43,${0.03 * (1 - d / 120)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -169,7 +165,7 @@ function ParticleField() {
     };
   }, []);
   return (
-    <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0.6 }} />
+    <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0.3 }} />
   );
 }
 
