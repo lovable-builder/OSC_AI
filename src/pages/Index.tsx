@@ -1040,12 +1040,12 @@ export default function App() {
           if (!disposed) {
             setWsConnected(false);
             setConsoleFeedback(prev => ({ ...prev, consoleOnline: false }));
-            wsReconnectRef.current = setTimeout(connect, 3000);
+            wsReconnectRef.current = setTimeout(connect, 500);
           }
         };
         ws.onerror = () => { ws.close(); };
       } catch {
-        if (!disposed) wsReconnectRef.current = setTimeout(connect, 3000);
+        if (!disposed) wsReconnectRef.current = setTimeout(connect, 500);
       }
     };
     connect();
@@ -1196,11 +1196,8 @@ export default function App() {
             text: `Applying preset "${preset.name}" — ${preset.quantity} fixture(s)` ,
             commands,
           }]);
-          // Execute with 200ms stagger, 400ms for mode switches
-          for (let i = 0; i < commands.length; i++) {
-            const cmd = commands[i];
-            const isModeSwitchCmd = cmd.path === "/eos/key/patch" || cmd.path === "/eos/key/live";
-            if (i > 0) await new Promise(resolve => setTimeout(resolve, isModeSwitchCmd ? 400 : 200));
+          // Execute immediately (no artificial stagger)
+          for (const cmd of commands) {
             sendOsc(cmd.path, cmd.value);
           }
           setAiOscLoading(false);
@@ -1269,21 +1266,8 @@ export default function App() {
         ];
       }
       
-      // Step 6: Reliable patch sequencing — give patch mode enough time before sending Address/Type
-      const isPatchNewcmd = (c: { path: string; value?: string }) =>
-        c.path === "/eos/newcmd" && /\b(Address|Type|Unpatch)\b/i.test(c.value || "");
-
-      for (let i = 0; i < finalCommands.length; i++) {
-        const cmd = finalCommands[i];
-        if (i > 0) {
-          const prev = finalCommands[i - 1];
-          const enteringPatchMode = prev.path === "/eos/key/patch" && isPatchNewcmd(cmd);
-          const patchSequenceStep = isPatchNewcmd(cmd) || isPatchNewcmd(prev);
-          const modeSwitchStep = cmd.path === "/eos/key/patch" || cmd.path === "/eos/key/live" || prev.path === "/eos/key/patch" || prev.path === "/eos/key/live";
-
-          const delay = enteringPatchMode ? 900 : patchSequenceStep ? 500 : modeSwitchStep ? 400 : 200;
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
+      // Execute immediately (no artificial sequencing delays)
+      for (const cmd of finalCommands) {
         sendOsc(cmd.path, cmd.value);
       }
       
