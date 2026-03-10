@@ -1988,7 +1988,7 @@ export default function App() {
                   BUTTON SEQUENCE
                 </span>
                 {steps && (
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#444" }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#9ca3af" }}>
                     {activeStep + 1} / {steps.length}
                   </span>
                 )}
