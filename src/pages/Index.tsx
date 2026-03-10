@@ -6,6 +6,7 @@ import { loadEOSFixtures, fuzzyMatchFixture } from "@/lib/eosFixtureParser";
 import ConsoleSteps3D from "@/components/ConsoleSteps3D";
 import VoiceMicButton from "@/components/VoiceMicButton";
 import VoiceAgent from "@/components/VoiceAgent";
+import HeroSection from "@/components/HeroSection";
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const CONSOLES = [
@@ -668,6 +669,7 @@ function CommandLog({ logs, onClear }) {
 export default function App() {
   const [activeModule, setActiveModule] = useState("guide");
   const [mounted, setMounted] = useState(false);
+  const [showHero, setShowHero] = useState(() => localStorage.getItem("bridge_skip_hero") !== "true");
 
   // Guide state
   const [messages, setMessages] = useState([]);
@@ -1417,6 +1419,8 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: rgba(0,255,200,0.2); border-radius: 2px; }
         @keyframes bar-dance { from { transform: scaleY(0.4); } to { transform: scaleY(1.2); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(0,255,200,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,200,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,200,0); } }
         @keyframes shimmer { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
         .nav-btn { transition: all 0.2s; position: relative; overflow: hidden; }
@@ -1426,6 +1430,17 @@ export default function App() {
         .msg-in { animation: fadeUp 0.3s ease forwards; }
       `}</style>
 
+      {/* ── HERO SECTION ── */}
+      {showHero && (
+        <HeroSection
+          onGetStarted={() => {
+            setShowHero(false);
+            localStorage.setItem("bridge_skip_hero", "true");
+            document.querySelector("main")?.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+      )}
+
       <ParticleField />
 
       {/* ── HEADER ── */}
@@ -1434,7 +1449,7 @@ export default function App() {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "rgba(2,2,8,0.9)",
+          background: showHero ? "rgba(2,2,8,0.9)" : "rgba(2,2,8,0.95)",
           backdropFilter: "blur(24px) saturate(180%)",
           borderBottom: "1px solid rgba(0,255,200,0.08)",
           padding: "0 24px",
@@ -1442,6 +1457,8 @@ export default function App() {
           display: "flex",
           alignItems: "center",
           gap: "0",
+          animation: showHero ? "" : "slideDown 0.5s ease-out",
+          transition: "all 0.3s ease",
         }}
       >
         {/* Logo */}
@@ -1591,6 +1608,7 @@ export default function App() {
           padding: "24px 20px",
           opacity: mounted ? 1 : 0,
           transition: "opacity 0.5s ease",
+          animation: mounted ? "slideUp 0.6s ease-out" : "none",
         }}
       >
         {/* ══ MODULE: AI GUIDE ══ */}
