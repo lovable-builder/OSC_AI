@@ -1209,7 +1209,15 @@ export default function App() {
       try {
         const eosFixtures = await loadEOSFixtures();
         if (eosFixtures.length > 0) {
-          const typeQuery = extractFixtureTypeFromPrompt(prompt);
+          let typeQuery = extractFixtureTypeFromPrompt(prompt);
+          // Heuristic for prompts like: "patch channel 400 address 600 Mack"
+          if (!typeQuery) {
+            const trailingTypeMatch = prompt.match(/\bpatch\b.*\b(?:address|addr)\s+\S+\s+(.+)$/i);
+            if (trailingTypeMatch?.[1]?.trim()) {
+              typeQuery = trailingTypeMatch[1].trim();
+            }
+          }
+
           if (typeQuery) {
             const matches = fuzzyMatchFixtures(eosFixtures, typeQuery, 8);
             
