@@ -2262,7 +2262,7 @@ export default function App() {
               >
                 SAVE
               </button>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#2a2a2a" }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "#9ca3af" }}>
                 Bridge: {bridgeUrl} → {oscHost}:{oscPort}
               </span>
 
