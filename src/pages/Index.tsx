@@ -2331,7 +2331,7 @@ export default function App() {
                   <div
                     style={{
                       width: "32px", height: "16px", borderRadius: "8px",
-                      background: aiOscPreviewMode ? "rgba(255,107,43,0.6)" : "rgba(255,255,255,0.08)",
+                      background: aiOscPreviewMode ? "rgba(255,107,43,0.6)" : "#e5e7eb",
                       position: "relative", transition: "background 0.2s",
                     }}
                   >
