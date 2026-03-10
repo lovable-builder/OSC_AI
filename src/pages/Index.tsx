@@ -2369,7 +2369,7 @@ export default function App() {
                         }}>
                           {msg.role === "user" ? "YOU" : "AI"}
                         </span>
-                        <span style={{ fontSize: "12px", color: msg.role === "user" ? "#aaa" : "#e0e0e0", fontFamily: "'DM Sans', sans-serif" }}>
+                        <span style={{ fontSize: "12px", color: msg.role === "user" ? "#6b7280" : "#1f2937", fontFamily: "'DM Sans', sans-serif" }}>
                           {msg.text}
                         </span>
                       </div>
