@@ -2306,15 +2306,15 @@ export default function App() {
 
             {/* ── AI AGENT PROMPT BAR ── */}
             <div
-              className="neon-panel"
               style={{
-                background: "rgba(0,255,200,0.02)",
-                border: "1px solid rgba(0,255,200,0.12)",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
                 borderRadius: "14px",
                 padding: "16px 20px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "12px",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
               }}
             >
               {/* Header row */}
