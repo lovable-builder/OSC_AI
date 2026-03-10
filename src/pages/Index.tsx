@@ -707,6 +707,12 @@ export default function App() {
     role: "user" | "assistant";
     text: string;
     commands?: Array<{ path: string; value?: string; description: string }>;
+    choices?: Array<{
+      label: string;
+      fixtureType: string;
+      dmxChannels: number;
+      originalPrompt: string;
+    }>;
   }>>([]);
   const [aiOscPreviewMode, setAiOscPreviewMode] = useState(false);
 
