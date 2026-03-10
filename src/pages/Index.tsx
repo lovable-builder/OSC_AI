@@ -1444,12 +1444,11 @@ export default function App() {
   // ── RENDER ───────────────────────────────────────────────────────────────────
   return (
     <div
-      className="scanlines cyber-grid"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg, #020208 0%, #060610 30%, #0a0812 100%)",
+        background: "#fafafa",
         fontFamily: "'DM Sans', sans-serif",
-        color: "#e0e0e0",
+        color: "#1f2937",
         overflow: "hidden auto",
       }}
     >
@@ -1458,16 +1457,16 @@ export default function App() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,255,200,0.2); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,107,43,0.3); border-radius: 2px; }
         @keyframes bar-dance { from { transform: scaleY(0.4); } to { transform: scaleY(1.2); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(0,255,200,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,200,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,200,0); } }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(255,107,43,0.3); } 70% { box-shadow: 0 0 0 8px rgba(255,107,43,0); } 100% { box-shadow: 0 0 0 0 rgba(255,107,43,0); } }
         @keyframes shimmer { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
         .nav-btn { transition: all 0.2s; position: relative; overflow: hidden; }
-        .nav-btn:hover { color: #00ffc8 !important; text-shadow: 0 0 12px rgba(0,255,200,0.5); }
-        .nav-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #00ffc8, transparent); opacity: 0; transition: opacity 0.3s; }
+        .nav-btn:hover { color: #FF6B2B !important; }
+        .nav-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: #FF6B2B; opacity: 0; transition: opacity 0.3s; }
         .nav-btn:hover::after { opacity: 1; }
         .msg-in { animation: fadeUp 0.3s ease forwards; }
       `}</style>
