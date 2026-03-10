@@ -10,9 +10,10 @@ import HeroSection from "@/components/HeroSection";
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const CONSOLES = [
-  { id: "eos-ti", name: "Eos Ti", desc: "Flagship", color: "#FF6B2B" },
-  { id: "ion-xe", name: "Ion Xe", desc: "Mid-size", color: "#FF8C42" },
-  { id: "element2", name: "Element 2", desc: "Compact", color: "#FFA559" },
+  { id: "eos-apex", name: "Eos Apex", desc: "Next-Gen Flagship", color: "#FF6B2B", img: "/images/Apex.gif" },
+  { id: "gio5", name: "Gio @5", desc: "Flagship", color: "#FF6B2B", img: "/images/Gio5.gif" },
+  { id: "ion-xe", name: "Ion Xe", desc: "Mid-size", color: "#FF8C42", img: "/images/IonXe.gif" },
+  { id: "element2", name: "Element 2", desc: "Compact", color: "#FFA559", img: "/images/Element2.gif" },
   { id: "nomad", name: "Nomad", desc: "Software", color: "#FFB347" },
   { id: "colorsource", name: "ColorSource", desc: "Entry", color: "#FFC27A" },
 ];
