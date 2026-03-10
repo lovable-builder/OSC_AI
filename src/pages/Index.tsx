@@ -1490,11 +1490,11 @@ export default function App() {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: showHero ? "rgba(2,2,8,0.9)" : "rgba(2,2,8,0.95)",
-          backdropFilter: "blur(24px) saturate(180%)",
-          borderBottom: "1px solid rgba(0,255,200,0.08)",
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          borderBottom: "1px solid #e5e7eb",
           padding: "0 24px",
-          height: "60px",
+          height: "56px",
           display: "flex",
           alignItems: "center",
           gap: "0",
@@ -1503,40 +1503,39 @@ export default function App() {
         }}
       >
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "32px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "28px" }}>
           <div
             style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #FF6B2B 0%, #00ffc8 100%)",
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #FF6B2B 0%, #FF8C42 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 24px rgba(0,255,200,0.3), 0 0 48px rgba(255,107,43,0.2)",
-              fontSize: "18px",
+              boxShadow: "0 2px 8px rgba(255,107,43,0.25)",
+              fontSize: "16px",
               flexShrink: 0,
-              animation: "hex-rotate 20s linear infinite",
             }}
           >
             ⚡
           </div>
           <div>
             <div
-              className="holo-text"
               style={{
                 fontFamily: "'Orbitron', 'Space Mono', monospace",
                 fontWeight: "900",
-                fontSize: "14px",
-                letterSpacing: "0.12em",
+                fontSize: "13px",
+                letterSpacing: "0.1em",
+                color: "#1f2937",
               }}
             >
-              EOS<span>AI</span>
+              EOS<span style={{ color: "#FF6B2B" }}>AI</span>
             </div>
             <div
-              style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#00ffc866", letterSpacing: "0.2em" }}
+              style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#9ca3af", letterSpacing: "0.15em" }}
             >
-              CONSOLE INTELLIGENCE v2.0
+              CONSOLE INTELLIGENCE
             </div>
           </div>
         </div>
@@ -1552,18 +1551,17 @@ export default function App() {
               className="nav-btn"
               onClick={() => setActiveModule(tab.id)}
               style={{
-                padding: "8px 18px",
+                padding: "8px 16px",
                 borderRadius: "8px",
                 border: "none",
-                background: activeModule === tab.id ? "rgba(0,255,200,0.08)" : "transparent",
-                color: activeModule === tab.id ? "#00ffc8" : "#555",
+                background: activeModule === tab.id ? "rgba(255,107,43,0.08)" : "transparent",
+                color: activeModule === tab.id ? "#FF6B2B" : "#6b7280",
                 fontFamily: "'Orbitron', 'Space Mono', monospace",
                 fontSize: "10px",
                 fontWeight: "700",
-                letterSpacing: "0.12em",
+                letterSpacing: "0.1em",
                 cursor: "pointer",
-                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(0,255,200,0.2), 0 0 16px rgba(0,255,200,0.1)" : "none",
-                textShadow: activeModule === tab.id ? "0 0 8px rgba(0,255,200,0.5)" : "none",
+                boxShadow: activeModule === tab.id ? "inset 0 0 0 1px rgba(255,107,43,0.2)" : "none",
               }}
             >
               <span style={{ marginRight: "6px" }}>{tab.icon}</span>
@@ -1573,22 +1571,19 @@ export default function App() {
         </nav>
 
         {/* Status */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {/* WebSocket Bridge Status */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              padding: "4px 14px",
+              padding: "4px 12px",
               borderRadius: "20px",
-              background: wsConnected ? "rgba(0,255,200,0.08)" : "rgba(239,68,68,0.1)",
-              border: `1px solid ${wsConnected ? "rgba(0,255,200,0.3)" : "rgba(239,68,68,0.2)"}`,
+              background: wsConnected ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.06)",
+              border: `1px solid ${wsConnected ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.2)"}`,
               cursor: "pointer",
-              transition: "all 0.4s ease",
-              boxShadow: wsConnected
-                ? "0 0 12px rgba(0,255,200,0.25), 0 0 24px rgba(0,255,200,0.1), inset 0 0 8px rgba(0,255,200,0.05)"
-                : "none",
+              transition: "all 0.3s ease",
             }}
             title={wsConnected ? `Connected to ${BRIDGE_URL}` : `Disconnected — trying ${BRIDGE_URL}`}
             onClick={() => window.open("/bridge.js", "_blank")}
@@ -1598,17 +1593,16 @@ export default function App() {
                 width: "6px",
                 height: "6px",
                 borderRadius: "50%",
-                background: wsConnected ? "#00ffc8" : "#ef4444",
-                boxShadow: wsConnected ? "0 0 6px #00ffc8" : "none",
-                transition: "all 0.4s ease",
+                background: wsConnected ? "#22c55e" : "#ef4444",
+                transition: "all 0.3s ease",
               }}
             />
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: wsConnected ? "#00ffc8" : "#ef4444", transition: "color 0.3s" }}>
-              {wsConnected ? "BRIDGE ONLINE" : "OFFLINE"}
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "9px", color: wsConnected ? "#22c55e" : "#ef4444" }}>
+              {wsConnected ? "BRIDGE" : "OFFLINE"}
             </span>
             {wsConnected && (
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "rgba(0,255,200,0.5)", marginLeft: "4px" }}>
-                {msgCount > 0 ? `${msgCount} msgs` : "0 msgs"}
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "8px", color: "#9ca3af", marginLeft: "2px" }}>
+                {msgCount > 0 ? `${msgCount}` : "0"}
               </span>
             )}
           </div>
@@ -1620,7 +1614,7 @@ export default function App() {
                 gap: "6px",
                 padding: "4px 12px",
                 borderRadius: "20px",
-                background: "rgba(255,107,43,0.1)",
+                background: "rgba(255,107,43,0.06)",
                 border: "1px solid rgba(255,107,43,0.2)",
               }}
             >
