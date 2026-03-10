@@ -1124,32 +1124,37 @@ export default function App() {
   const sendOsc = useCallback((path: string, value?: string | number | null) => {
     const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
     const displayVal = value != null ? String(value) : "";
+    const ws = wsRef.current;
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      setOscLogs((prev) => [...prev.slice(-99), { time, path: `${path} [NOT SENT: BRIDGE OFFLINE]`, val: displayVal }]);
+      return;
+    }
+
     setOscLogs((prev) => [...prev.slice(-99), { time, path, val: displayVal }]);
 
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      // For /eos/newcmd commands: send as /eos/newcmd with command string as typed arg
-      // Bridge will forward to EOS as /eos/user/X/newcmd + string argument
-      if (path === "/eos/newcmd" && typeof value === "string" && value.length > 0) {
-        wsRef.current.send(JSON.stringify({
-          path: "/eos/newcmd",
-          args: [{ type: "s", value }],
-          host: oscHost,
-          port: parseInt(oscPort, 10),
-        }));
-        return;
-      }
-
-      // Build proper typed args per EOS spec
-      let args: Array<{type: string; value: string | number}> = [];
-      if (value != null && value !== "") {
-        if (typeof value === "number" || (!isNaN(Number(value)) && path.includes("/param/"))) {
-          args = [{ type: "f", value: parseFloat(String(value)) }];
-        } else if (typeof value === "string") {
-          args = [{ type: "s", value }];
-        }
-      }
-      wsRef.current.send(JSON.stringify({ path, args, host: oscHost, port: parseInt(oscPort, 10) }));
+    // For /eos/newcmd commands: send as /eos/newcmd with command string as typed arg
+    // Bridge will forward to EOS as /eos/user/X/newcmd + string argument
+    if (path === "/eos/newcmd" && typeof value === "string" && value.length > 0) {
+      ws.send(JSON.stringify({
+        path: "/eos/newcmd",
+        args: [{ type: "s", value }],
+        host: oscHost,
+        port: parseInt(oscPort, 10),
+      }));
+      return;
     }
+
+    // Build proper typed args per EOS spec
+    let args: Array<{type: string; value: string | number}> = [];
+    if (value != null && value !== "") {
+      if (typeof value === "number" || (!isNaN(Number(value)) && path.includes("/param/"))) {
+        args = [{ type: "f", value: parseFloat(String(value)) }];
+      } else if (typeof value === "string") {
+        args = [{ type: "s", value }];
+      }
+    }
+    ws.send(JSON.stringify({ path, args, host: oscHost, port: parseInt(oscPort, 10) }));
   }, [oscHost, oscPort]);
 
   // Execute AI OSC commands — with preset macro interception
