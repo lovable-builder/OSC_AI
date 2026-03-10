@@ -497,7 +497,7 @@ function FixtureGrid({ channels }) {
               right: 0,
               textAlign: "center",
               fontSize: "8px",
-              color: "rgba(255,255,255,0.5)",
+              color: "#6b7280",
               fontFamily: "'Space Mono', monospace",
             }}
           >
