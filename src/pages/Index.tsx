@@ -363,14 +363,14 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "#fff",
+        border: "1px solid #e5e7eb",
         borderRadius: "10px",
         padding: "12px 14px",
         transition: "border-color 0.2s",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(255,107,43,0.3)")}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FF6B2B66")}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
     >
       <div
         style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: cmd.params.length ? "10px" : "0" }}
@@ -393,13 +393,12 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
             borderRadius: "5px",
             border: "none",
             background: fired ? "#22c55e" : "#FF6B2B",
-            color: "#000",
+            color: "#fff",
             fontFamily: "'Space Mono', monospace",
             fontSize: "10px",
             fontWeight: "700",
             cursor: "pointer",
             transition: "all 0.2s",
-            boxShadow: fired ? "0 0 12px #22c55e88" : "0 0 8px #FF6B2B44",
             transform: fired ? "scale(0.95)" : "scale(1)",
           }}
         >
@@ -419,17 +418,17 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
                 style={{
                   flex: 1,
                   minWidth: "60px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "#f9fafb",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "5px",
                   padding: "5px 10px",
-                  color: "#ddd",
+                  color: "#1f2937",
                   fontSize: "11px",
                   fontFamily: "'Space Mono', monospace",
                   outline: "none",
                 }}
                 onFocus={(e) => (e.target.style.borderColor = "#FF6B2B88")}
-                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
               />
             );
           })}
@@ -439,7 +438,7 @@ function OscCard({ cmd, onSend }: { cmd: any; onSend: (path: string, value?: str
         style={{
           marginTop: "6px",
           fontSize: "9px",
-          color: "#333",
+          color: "#9ca3af",
           fontFamily: "'Space Mono', monospace",
           wordBreak: "break-all",
         }}
