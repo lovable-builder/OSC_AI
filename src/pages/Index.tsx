@@ -2556,7 +2556,6 @@ export default function App() {
                     onPatch={async (channel, address, fixtureType) => {
                       const cmdStr = `Chan ${channel} Address ${address} Type ${fixtureType} Enter`;
                       sendOsc("/eos/key/patch");
-                      await new Promise(resolve => setTimeout(resolve, 900));
                       sendOsc("/eos/newcmd", cmdStr);
                       setAiOscHistory(prev => [...prev, {
                         role: "assistant",
