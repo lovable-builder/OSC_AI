@@ -2691,7 +2691,7 @@ export default function App() {
                   <div
                     style={{
                       fontSize: "10px",
-                      color: "#444",
+                      color: "#9ca3af",
                       fontFamily: "'Space Mono', monospace",
                       letterSpacing: "0.1em",
                       marginBottom: "12px",
