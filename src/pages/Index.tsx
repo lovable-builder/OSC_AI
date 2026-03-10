@@ -2354,6 +2354,54 @@ export default function App() {
                             </div>
                           ))}
                         </div>
+                      {/* Disambiguation choices */}
+                      {msg.choices && msg.choices.length > 0 && (
+                        <div style={{ paddingLeft: "30px", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                          {msg.choices.map((choice, ci) => (
+                            <button
+                              key={ci}
+                              onClick={() => executeAiOscCommands(choice.originalPrompt)}
+                              style={{
+                                display: "flex", alignItems: "center", gap: "10px",
+                                background: "rgba(0,255,200,0.04)",
+                                border: "1px solid rgba(0,255,200,0.15)",
+                                borderRadius: "8px",
+                                padding: "8px 14px",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                textAlign: "left",
+                                width: "100%",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = "rgba(0,255,200,0.5)";
+                                e.currentTarget.style.background = "rgba(0,255,200,0.08)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = "rgba(0,255,200,0.15)";
+                                e.currentTarget.style.background = "rgba(0,255,200,0.04)";
+                              }}
+                            >
+                              <span style={{
+                                fontFamily: "'Space Mono', monospace", fontSize: "11px",
+                                color: "#00ffc8", fontWeight: "700",
+                              }}>
+                                {choice.fixtureType}
+                              </span>
+                              <span style={{
+                                fontSize: "11px", color: "#aaa",
+                                fontFamily: "'DM Sans', sans-serif", flex: 1,
+                              }}>
+                                {choice.label}
+                              </span>
+                              <span style={{
+                                fontFamily: "'Space Mono', monospace", fontSize: "9px",
+                                color: "#555", flexShrink: 0,
+                              }}>
+                                SELECT →
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   ))}
