@@ -2207,11 +2207,11 @@ export default function App() {
                 placeholder="ws://localhost:8080"
                 style={{
                   width: "200px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "#f9fafb",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "6px",
                   padding: "6px 12px",
-                  color: "#ddd",
+                  color: "#1f2937",
                   fontSize: "12px",
                   fontFamily: "'Space Mono', monospace",
                   outline: "none",
