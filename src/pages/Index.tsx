@@ -1683,7 +1683,7 @@ export default function App() {
                   style={{
                     fontFamily: "'Space Mono', monospace",
                     fontSize: "10px",
-                    color: "#666",
+                    color: "#9ca3af",
                     letterSpacing: "0.12em",
                   }}
                 >
