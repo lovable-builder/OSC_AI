@@ -2355,7 +2355,7 @@ export default function App() {
                   style={{
                     maxHeight: "200px", overflowY: "auto",
                     display: "flex", flexDirection: "column", gap: "8px",
-                    background: "rgba(0,0,0,0.3)", borderRadius: "10px",
+                    background: "#f9fafb", borderRadius: "10px",
                     padding: "12px",
                   }}
                 >
