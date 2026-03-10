@@ -1155,7 +1155,7 @@ export default function App() {
     }
   }, [oscHost, oscPort]);
 
-  // Execute AI OSC commands
+  // Execute AI OSC commands — with preset macro interception
   const executeAiOscCommands = useCallback(async (prompt: string) => {
     if (!prompt.trim()) return;
     
@@ -1163,6 +1163,47 @@ export default function App() {
     setAiOscHistory(prev => [...prev, { role: "user", text: prompt }]);
     
     try {
+      // Step 4: Voice macro — intercept preset commands before calling AI
+      const presetMatch = prompt.match(/^(?:apply|patch|use)\s+(.+)$/i);
+      if (presetMatch) {
+        const { findPresetByName } = await import("@/components/PatchPresets");
+        const preset = findPresetByName(presetMatch[1]);
+        if (preset) {
+          // Build patch commands directly from preset — skip AI entirely
+          const commands: Array<{ path: string; value?: string; description: string }> = [
+            { path: "/eos/key/patch", description: "Enter patch mode" },
+          ];
+          for (let i = 0; i < preset.quantity; i++) {
+            const ch = preset.startChannel + i;
+            const addr = preset.startDmxAddress + i * preset.modeChannels;
+            commands.push({
+              path: "/eos/newcmd",
+              value: `Chan ${ch} Address ${preset.universe}/${addr} Enter`,
+              description: `Patch ch ${ch} → DMX ${preset.universe}/${addr}`,
+            });
+          }
+          commands.push({ path: "/eos/key/live", description: "Return to live mode" });
+          
+          setAiOscHistory(prev => [...prev, {
+            role: "assistant",
+            text: `Applying preset "${preset.name}" — ${preset.quantity} fixture(s)`,
+            commands,
+          }]);
+          
+          // Execute with 200ms stagger, 400ms for mode switches
+          for (let i = 0; i < commands.length; i++) {
+            const cmd = commands[i];
+            const isModeSwitchCmd = cmd.path === "/eos/key/patch" || cmd.path === "/eos/key/live";
+            if (i > 0) await new Promise(resolve => setTimeout(resolve, isModeSwitchCmd ? 400 : 200));
+            sendOsc(cmd.path, cmd.value);
+          }
+          
+          setAiOscLoading(false);
+          setAiOscInput("");
+          return;
+        }
+      }
+
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc-agent`,
         {
@@ -1206,7 +1247,6 @@ export default function App() {
       
       let finalCommands = commands;
       if (hasPatchCommands && !alreadyHasPatchKey) {
-        // Wrap: insert /eos/key/patch before first patch cmd and /eos/key/live after last
         finalCommands = [
           { path: "/eos/key/patch", description: "Enter patch mode" },
           ...commands,
@@ -1214,12 +1254,15 @@ export default function App() {
         ];
       }
       
-      const delayMs = hasPatchCommands ? 400 : 200;
-      
-      // Execute commands sequentially with appropriate delay
+      // Step 6: Optimized delays — 400ms for mode switches, 200ms for inner commands
       for (let i = 0; i < finalCommands.length; i++) {
         const cmd = finalCommands[i];
-        if (i > 0) await new Promise(resolve => setTimeout(resolve, delayMs));
+        if (i > 0) {
+          const isModeSwitchCmd = cmd.path === "/eos/key/patch" || cmd.path === "/eos/key/live";
+          const prevIsModeSwitchCmd = finalCommands[i - 1].path === "/eos/key/patch" || finalCommands[i - 1].path === "/eos/key/live";
+          const delay = (isModeSwitchCmd || prevIsModeSwitchCmd) ? 400 : 200;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
         sendOsc(cmd.path, cmd.value);
       }
       
