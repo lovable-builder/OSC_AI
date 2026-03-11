@@ -2558,6 +2558,50 @@ export default function App() {
                           { path: "/eos/newcmd", value: cmdStr, description: `Patch ch ${channel}` },
                         ],
                       }]);
+
+                      // Learning mode: record workflow
+                      if (learningMode) {
+                        let wf = createPatchWorkflow({
+                          channel,
+                          fixtureType,
+                          dmxAddress: address,
+                          universe: 1,
+                          label: "",
+                        });
+                        // Mark all steps as sent immediately (commands fire instantly)
+                        for (const s of wf.steps) {
+                          wf = markStepSent(wf, s.step);
+                        }
+                        activeWorkflowRef.current = wf;
+
+                        // Wait briefly for console echo, then finalize
+                        setTimeout(async () => {
+                          const cmdLine = consoleFeedback.commandLine || "";
+                          const hasError = /error|invalid|syntax/i.test(cmdLine);
+                          if (hasError) {
+                            wf = markStepFailed(wf, 2, cmdLine);
+                            wf = finalizeWorkflow(wf, false, cmdLine, cmdLine);
+                            await saveCorrection({
+                              error_id: `err-${Date.now()}`,
+                              original_command: cmdStr,
+                              console_response: cmdLine,
+                              likely_cause: "Command syntax rejected by console",
+                              correction_needed: "Check command format and patch mode state",
+                              timestamp: Date.now(),
+                            });
+                          } else {
+                            // Mark validated
+                            for (const s of wf.steps) {
+                              wf = markStepValidated(wf, s.step);
+                            }
+                            wf = finalizeWorkflow(wf, true, cmdLine || null, null);
+                          }
+                          await saveWorkflow(wf);
+                          await updateStatsFromWorkflow(wf);
+                          activeWorkflowRef.current = null;
+                          setLearningsRefreshKey(k => k + 1);
+                        }, 2000);
+                      }
                     }}
                   />
                 ) : (
