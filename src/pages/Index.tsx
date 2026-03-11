@@ -720,10 +720,30 @@ export default function App() {
   const [aiOscPreviewMode, setAiOscPreviewMode] = useState(false);
 
   // Learning mode state
-  const [learningMode, setLearningMode] = useState(() => localStorage.getItem("bridge_learning_mode") === "true");
+  const [isRecording, setIsRecording] = useState(false);
   const [learningsRefreshKey, setLearningsRefreshKey] = useState(0);
+  const [sessionEntryCount, setSessionEntryCount] = useState(0);
   const activeWorkflowRef = useRef<PatchWorkflow | null>(null);
-  useEffect(() => { localStorage.setItem("bridge_learning_mode", String(learningMode)); }, [learningMode]);
+  const activeSessionRef = useRef<OscSession | null>(null);
+
+  const startRecording = useCallback(() => {
+    const session = createSession();
+    activeSessionRef.current = session;
+    setIsRecording(true);
+    setSessionEntryCount(0);
+  }, []);
+
+  const stopRecording = useCallback(async () => {
+    if (activeSessionRef.current) {
+      const stopped = stopSession(activeSessionRef.current);
+      await saveSession(stopped);
+      await incrementSessionCount();
+      activeSessionRef.current = null;
+    }
+    setIsRecording(false);
+    setSessionEntryCount(0);
+    setLearningsRefreshKey(k => k + 1);
+  }, []);
 
   // WebSocket bridge state
   const [bridgeUrl, setBridgeUrl] = useState(() => localStorage.getItem("eos_bridge_url") || import.meta.env.VITE_BRIDGE_URL || "ws://localhost:8080");
