@@ -2665,11 +2665,11 @@ export default function App() {
               {/* Right Column */}
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 {/* Patch Learnings Panel (visible when learning mode on) */}
-                {learningMode && (
+                {(isRecording || learningsRefreshKey > 0) && (
                   <div
                     style={{
                       background: "#fff",
-                      border: "1px solid rgba(139,92,246,0.2)",
+                      border: `1px solid ${isRecording ? "rgba(239,68,68,0.2)" : "rgba(139,92,246,0.2)"}`,
                       borderRadius: "14px",
                       padding: "16px",
                     }}
@@ -2677,15 +2677,15 @@ export default function App() {
                     <div style={{
                       display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px",
                     }}>
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#8b5cf6" }} />
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: isRecording ? "#ef4444" : "#8b5cf6" }} />
                       <span style={{
                         fontFamily: "'Space Mono', monospace", fontSize: "10px",
-                        fontWeight: "700", color: "#8b5cf6", letterSpacing: "0.1em",
+                        fontWeight: "700", color: isRecording ? "#ef4444" : "#8b5cf6", letterSpacing: "0.1em",
                       }}>
-                        PATCH LEARNINGS
+                        LEARNINGS
                       </span>
                     </div>
-                    <PatchLearningsPanel refreshKey={learningsRefreshKey} />
+                    <PatchLearningsPanel refreshKey={learningsRefreshKey} isRecording={isRecording} sessionEntryCount={sessionEntryCount} />
                   </div>
                 )}
                 {/* Custom OSC */}
