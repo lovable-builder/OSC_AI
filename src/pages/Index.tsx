@@ -13,7 +13,14 @@ import {
   updateStatsFromWorkflow,
   saveCorrection,
   buildLearningsPrompt,
+  createSession,
+  addSessionEntry,
+  stopSession,
+  saveSession,
+  incrementOscCommandCount,
+  incrementSessionCount,
   type PatchWorkflow,
+  type OscSession,
 } from "@/lib/patchMemoryDb";
 
 import ConsoleSteps3D from "@/components/ConsoleSteps3D";
