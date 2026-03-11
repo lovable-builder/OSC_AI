@@ -2,6 +2,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import PatchPanel from "@/components/PatchPanel";
+import PatchLearningsPanel from "@/components/PatchLearningsPanel";
+import {
+  createPatchWorkflow,
+  markStepSent,
+  markStepValidated,
+  markStepFailed,
+  finalizeWorkflow,
+  saveWorkflow,
+  updateStatsFromWorkflow,
+  saveCorrection,
+  buildLearningsPrompt,
+  type PatchWorkflow,
+} from "@/lib/patchMemoryDb";
 
 import ConsoleSteps3D from "@/components/ConsoleSteps3D";
 import VoiceMicButton from "@/components/VoiceMicButton";
