@@ -2,6 +2,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import PatchPanel from "@/components/PatchPanel";
+import PatchLearningsPanel from "@/components/PatchLearningsPanel";
+import {
+  createPatchWorkflow,
+  markStepSent,
+  markStepValidated,
+  markStepFailed,
+  finalizeWorkflow,
+  saveWorkflow,
+  updateStatsFromWorkflow,
+  saveCorrection,
+  buildLearningsPrompt,
+  type PatchWorkflow,
+} from "@/lib/patchMemoryDb";
 
 import ConsoleSteps3D from "@/components/ConsoleSteps3D";
 import VoiceMicButton from "@/components/VoiceMicButton";
@@ -698,6 +711,12 @@ export default function App() {
     selectedChoice?: string;
   }>>([]);
   const [aiOscPreviewMode, setAiOscPreviewMode] = useState(false);
+
+  // Learning mode state
+  const [learningMode, setLearningMode] = useState(() => localStorage.getItem("bridge_learning_mode") === "true");
+  const [learningsRefreshKey, setLearningsRefreshKey] = useState(0);
+  const activeWorkflowRef = useRef<PatchWorkflow | null>(null);
+  useEffect(() => { localStorage.setItem("bridge_learning_mode", String(learningMode)); }, [learningMode]);
 
   // WebSocket bridge state
   const [bridgeUrl, setBridgeUrl] = useState(() => localStorage.getItem("eos_bridge_url") || import.meta.env.VITE_BRIDGE_URL || "ws://localhost:8080");
@@ -1511,6 +1530,28 @@ export default function App() {
 
         {/* Status */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Learning Mode Toggle */}
+          <button
+            onClick={() => setLearningMode(v => !v)}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "4px 12px", borderRadius: "20px",
+              background: learningMode ? "rgba(139,92,246,0.08)" : "rgba(0,0,0,0.03)",
+              border: `1px solid ${learningMode ? "rgba(139,92,246,0.3)" : "#e5e7eb"}`,
+              cursor: "pointer", transition: "all 0.2s",
+              fontFamily: "'Space Mono', monospace", fontSize: "9px",
+              fontWeight: "700", letterSpacing: "0.1em",
+              color: learningMode ? "#8b5cf6" : "#9ca3af",
+            }}
+          >
+            <div style={{
+              width: "6px", height: "6px", borderRadius: "50%",
+              background: learningMode ? "#8b5cf6" : "#d1d5db",
+              transition: "all 0.2s",
+              animation: learningMode ? "pulse-ring 2s infinite" : "none",
+            }} />
+            {learningMode ? "LEARNING" : "LEARN"}
+          </button>
           {/* WebSocket Bridge Status */}
           <div
             style={{
@@ -2539,6 +2580,50 @@ export default function App() {
                           { path: "/eos/newcmd", value: cmdStr, description: `Patch ch ${channel}` },
                         ],
                       }]);
+
+                      // Learning mode: record workflow
+                      if (learningMode) {
+                        let wf = createPatchWorkflow({
+                          channel,
+                          fixtureType,
+                          dmxAddress: address,
+                          universe: 1,
+                          label: "",
+                        });
+                        // Mark all steps as sent immediately (commands fire instantly)
+                        for (const s of wf.steps) {
+                          wf = markStepSent(wf, s.step);
+                        }
+                        activeWorkflowRef.current = wf;
+
+                        // Wait briefly for console echo, then finalize
+                        setTimeout(async () => {
+                          const cmdLine = consoleFeedback.commandLine || "";
+                          const hasError = /error|invalid|syntax/i.test(cmdLine);
+                          if (hasError) {
+                            wf = markStepFailed(wf, 2, cmdLine);
+                            wf = finalizeWorkflow(wf, false, cmdLine, cmdLine);
+                            await saveCorrection({
+                              error_id: `err-${Date.now()}`,
+                              original_command: cmdStr,
+                              console_response: cmdLine,
+                              likely_cause: "Command syntax rejected by console",
+                              correction_needed: "Check command format and patch mode state",
+                              timestamp: Date.now(),
+                            });
+                          } else {
+                            // Mark validated
+                            for (const s of wf.steps) {
+                              wf = markStepValidated(wf, s.step);
+                            }
+                            wf = finalizeWorkflow(wf, true, cmdLine || null, null);
+                          }
+                          await saveWorkflow(wf);
+                          await updateStatsFromWorkflow(wf);
+                          activeWorkflowRef.current = null;
+                          setLearningsRefreshKey(k => k + 1);
+                        }, 2000);
+                      }
                     }}
                   />
                 ) : (
@@ -2552,6 +2637,30 @@ export default function App() {
 
               {/* Right Column */}
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                {/* Patch Learnings Panel (visible when learning mode on) */}
+                {learningMode && (
+                  <div
+                    style={{
+                      background: "#fff",
+                      border: "1px solid rgba(139,92,246,0.2)",
+                      borderRadius: "14px",
+                      padding: "16px",
+                    }}
+                  >
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px",
+                    }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#8b5cf6" }} />
+                      <span style={{
+                        fontFamily: "'Space Mono', monospace", fontSize: "10px",
+                        fontWeight: "700", color: "#8b5cf6", letterSpacing: "0.1em",
+                      }}>
+                        PATCH LEARNINGS
+                      </span>
+                    </div>
+                    <PatchLearningsPanel refreshKey={learningsRefreshKey} />
+                  </div>
+                )}
                 {/* Custom OSC */}
                 <div
                   style={{
