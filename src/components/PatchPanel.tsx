@@ -56,10 +56,8 @@ export default function PatchPanel({ onPatch }: PatchPanelProps) {
 
   const handlePatch = () => {
     if (!canPatch) return;
-    const manufacturer = selectedFixture!.m;
-    const model = selectedFixture!.t.replace(/_/g, ' ');
-    const fixtureCommandType = `${manufacturer} ${model}`;
-    onPatch(parseInt(channel, 10), parseInt(address, 10), fixtureCommandType);
+    // Use the full fixture library name (f.n) — exact match required by /eos/set/patch API
+    onPatch(parseInt(channel, 10), parseInt(address, 10), selectedFixture!.n);
   };
 
   const inputStyle: React.CSSProperties = {
